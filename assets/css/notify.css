@@ -1,0 +1,78 @@
+/* overlay */
+.notify-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.25);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* modal */
+.notify-modal{
+  width: 420px;
+  max-width: calc(100vw - 24px);
+  background: #fff;
+  border: 3px dashed #7e57c2; /* purple dotted outline like figma */
+  border-radius: 10px;
+  padding: 14px 14px 10px;
+}
+
+/* header */
+.notify-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #ddd;
+}
+
+.notify-title{
+  font-weight: 900;
+  font-size: 26px;
+  letter-spacing: .5px;
+}
+
+.notify-close{
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid #111;
+  background: #fff;
+  cursor: pointer;
+  font-weight: 900;
+  line-height: 1;
+}
+
+/* list container */
+.notify-list{
+  margin-top: 10px;
+  max-height: 520px;  /* scroll area like figma */
+  overflow: auto;
+  padding-right: 6px;
+}
+
+/* each item */
+.notify-item{
+  margin: 0 0 10px;
+}
+
+.notify-msg{
+  font-weight: 900;
+  font-size: 12px;
+  margin: 0;
+}
+
+.notify-time{
+  font-size: 11px;
+  color: #333;
+  margin: 2px 0 0;
+}
+
+/* scrollbar (optional) */
+.notify-list::-webkit-scrollbar{ width: 8px; }
+.notify-list::-webkit-scrollbar-thumb{
+  background: #c9c9cf;
+  border-radius: 8px;
+}

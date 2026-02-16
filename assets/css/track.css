@@ -1,0 +1,78 @@
+* { box-sizing: border-box; }
+body{ margin:0; font-family: Arial, sans-serif; background:#eef1f6; color:#111; }
+
+.topbar{
+  background:#fff; border-bottom:1px solid #dfe3ea;
+  padding:14px 22px; display:flex; align-items:center; justify-content:space-between;
+}
+.brand{ display:flex; align-items:center; gap:12px; font-weight:700; }
+.logo{ width:40px;height:40px;border-radius:10px;border:1px solid #dfe3ea;background:#fafafa;
+  display:flex;align-items:center;justify-content:center; }
+.top-icons{ display:flex; gap:16px; align-items:center; }
+.icon-btn{
+  width:38px;height:38px;border-radius:10px;border:1px solid #dfe3ea;background:#fff; cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.icon-btn a{ text-decoration:none; color:#111; width:100%; height:100%;
+  display:flex;align-items:center;justify-content:center; }
+
+.container{ max-width:980px; margin:22px auto 60px; padding:0 14px; }
+
+.banner{
+  background:#fff; border:1px solid #dfe3ea; border-radius:14px;
+  padding:18px; box-shadow:0 8px 18px rgba(0,0,0,.06);
+}
+.banner h1{ margin:0; font-size:22px; }
+.banner p{ margin:6px 0 0; color:#444; }
+
+.panel{
+  margin-top:18px; background:#fff; border:1px solid #dfe3ea;
+  border-radius:14px; padding:22px; box-shadow:0 8px 18px rgba(0,0,0,.06);
+}
+
+.exit-btn{
+  display:inline-block; padding:8px 16px; border-radius:6px;
+  background:#0b3a5a; color:#fff; text-decoration:none; font-weight:800; font-size:12px;
+}
+
+.h2{ margin:16px 0 0; font-size:18px; font-weight:900; }
+.sub{ margin:6px 0 18px; color:#444; }
+
+.section-title{ font-weight:900; margin:10px 0; }
+.line{ border:none; border-top:1px solid #eef1f6; margin:16px 0; }
+
+.kv p{ margin:6px 0; }
+.kv b{ display:inline-block; min-width:190px; }
+
+.pill{
+  display:inline-block; padding:6px 10px; border-radius:10px;
+  font-size:11px; font-weight:900; color:#fff; vertical-align:middle;
+}
+.pill.pending{ background:#b36a2b; }
+.pill.returned{ background:#7b4db8; }
+.pill.verified{ background:#2f7f9e; }
+.pill.approved{ background:#2c7a3f; }
+.pill.processing{ background:#2c5a9e; }
+.pill.ready{ background:#1f7a73; }
+.pill.completed{ background:#b14a3b; }
+
+.req-row{
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  margin-top:10px;
+}
+.small-btn{
+  padding:5px 10px; border-radius:6px; font-size:11px; font-weight:900; color:#fff;
+  background:#2c7a3f;
+}
+.view-link{ color:#111; text-decoration:none; font-weight:900; }
+.view-link:hover{ text-decoration:underline; }
+
+.history{
+  margin-top:8px;
+  font-size:12px;
+  line-height:1.8;
+}
+
+@media (max-width:900px){
+  .kv b{ min-width:130px; }
+}

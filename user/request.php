@@ -1,0 +1,122 @@
+<?php
+session_start();
+require_once "../config/database.php";
+
+if (!isset($_SESSION["user_id"]) || $_SESSION["role"] !== "USER") {
+  header("Location: ../auth/auth.php");
+  exit();
+}
+
+// Document types from DB
+$docs = [];
+$res = $conn->query("SELECT DISTINCT document_type FROM requirements_master ORDER BY document_type ASC");
+if ($res) {
+  while ($row = $res->fetch_assoc()) $docs[] = $row["document_type"];
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Request Document</title>
+  <link rel="stylesheet" href="../assets/css/upload_requirements.css">
+  <style>
+    .banner2{
+      background:#fff; border:1px solid #dfe3ea; border-radius:14px;
+      padding:18px; box-shadow:0 8px 18px rgba(0,0,0,.06);
+      margin-top:18px;
+    }
+    .banner2 h1{ margin:0; font-size:22px; }
+    .banner2 p{ margin:6px 0 0; color:#444; font-size:13px; }
+    input[type="text"], input[type="number"]{
+      width:100%; padding:12px; border-radius:10px;
+      border:2px solid #444; background:#f3f3f3; outline:none;
+      font-weight:800;
+    }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">📄</div>
+    <div>E-Doc Document Requesting System</div>
+  </div>
+  <div class="top-icons">
+    <button class="icon-btn" type="button" title="Notifications">🔔</button>
+    <div class="icon-btn" title="Account"><a href="profile.php">👤</a></div>
+    <div class="icon-btn" title="Logout"><a href="../auth/logout.php">⎋</a></div>
+  </div>
+</header>
+
+<main class="container">
+
+  <section class="banner2">
+    <h1>Request Document</h1>
+    <p>Start your application by completing all required fields and reviewing your personal information for accuracy.</p>
+  </section>
+
+  <section class="panel">
+    <a class="exit-btn" href="dashboard.php">EXIT</a>
+
+    <div class="h2">Application Details</div>
+    <p class="sub">Kindly complete all required fields to ensure accurate processing of your request</p>
+
+    <form method="POST" action="request_review.php" id="requestForm">
+
+      <label class="label">Select Document Type: *</label>
+      <select name="document_type" id="documentType" required>
+        <option value="">--- Select Document Request: e.g. Transcript, Diploma, Certificate ---</option>
+        <?php foreach ($docs as $d): ?>
+          <option value="<?= htmlspecialchars($d) ?>"><?= htmlspecialchars($d) ?></option>
+        <?php endforeach; ?>
+      </select>
+
+      <label class="label">Select Title Type: *</label>
+      <select name="title_type" id="titleType" required>
+        <option value="">--- Select Title Type ---</option>
+      </select>
+
+      <label class="label">Purpose/s of request: *</label>
+      <input type="text" name="purpose" placeholder="e.g. employment, transfer, board exam..." required>
+
+      <label class="label">Number of Copies: *</label>
+      <input type="number" name="copies" min="1" value="1" required>
+
+      <div class="actions">
+        <button class="btn next" type="submit">NEXT &gt;&gt;&gt;</button>
+      </div>
+    </form>
+  </section>
+
+</main>
+
+<script>
+const docSel = document.getElementById("documentType");
+const titleSel = document.getElementById("titleType");
+
+function resetTitle() {
+  titleSel.innerHTML = "<option value=''>--- Select Title Type ---</option>";
+}
+
+docSel.addEventListener("change", () => {
+  const doc = docSel.value.trim();
+  resetTitle();
+  if (!doc) return;
+
+  fetch("../api/get_title_types.php?doc=" + encodeURIComponent(doc))
+    .then(res => res.json())
+    .then(rows => {
+      rows.forEach(row => {
+        const opt = document.createElement("option");
+        opt.value = row.title_type;
+        opt.textContent = row.title_type;
+        titleSel.appendChild(opt);
+      });
+    })
+    .catch(() => resetTitle());
+});
+</script>
+
+</body>
+</html>
