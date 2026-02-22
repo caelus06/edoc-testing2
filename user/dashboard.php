@@ -301,8 +301,9 @@ function page_url($pageNum, $q, $status){
     </div>
   <?php endif; ?>
 
-  <div class="footer-bar"></div>
+  
 </main>
+<div class="footer-bar"></div></div>
 
 <!-- NOTIFICATION MODAL -->
 <div class="modal-backdrop" id="notifBackdrop">
