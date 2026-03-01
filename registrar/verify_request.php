@@ -91,6 +91,9 @@ $rk = trim($_GET["rk"] ?? ($_POST["rk"] ?? ""));
 if ($request_id <= 0) die("Missing request id.");
 if ($rk === "") $rk = "valid_id";
 
+// Special key for scanned document
+$SCANNED_KEY = "scanned_document";
+
 // ------------------------------
 // Fetch request + user info
 // ------------------------------
@@ -155,7 +158,7 @@ if (count($reqs) === 0) {
   ];
 }
 
-// Dedupe keys (fixes “Valid ID duplicating”)
+// Dedupe keys
 $seen = [];
 $deduped = [];
 foreach ($reqs as $r) {
@@ -166,8 +169,13 @@ foreach ($reqs as $r) {
 }
 $reqs = $deduped;
 
-// Build keys list + ensure rk exists
+// Build keys list
 $keys = array_map(fn($x)=>$x["requirement_key"], $reqs);
+
+// Always add scanned document as last item
+$keys[] = $SCANNED_KEY;
+
+// Ensure rk exists
 if (!in_array($rk, $keys, true)) $rk = $keys[0];
 
 // ------------------------------
@@ -183,6 +191,7 @@ foreach ($fileRows as $fr) {
   $k = (string)($fr["requirement_key"] ?? "");
   if ($k !== "") $filesByKey[$k] = $fr;
 }
+
 $selectedFile = $filesByKey[$rk] ?? null;
 
 // prev/next keys for arrows
@@ -200,7 +209,7 @@ $accountStatus = strtoupper($reqRow["verification_status"] ?? "PENDING");
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
   $action = trim($_POST["action"] ?? "");
 
-  // always trust rk from POST for actions
+  // trust rk from POST for actions
   $rk = trim($_POST["rk"] ?? $rk);
   if ($rk === "") $rk = "valid_id";
 
@@ -211,9 +220,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $st->execute();
     $row = $st->get_result()->fetch_assoc();
 
-    if (!$row) die("No file found for this requirement. Nothing to delete.");
+    if (!$row) die("No file found for this item. Nothing to delete.");
 
-    if (!empty($row["verified_at"])) die("This requirement is VERIFIED. Delete is locked.");
+    // Optional lock: lock delete if verified (applies even to scanned_document)
+    if (!empty($row["verified_at"])) die("This file is VERIFIED. Delete is locked.");
 
     if (!empty($row["file_path"]) && file_exists("../" . $row["file_path"])) {
       @unlink("../" . $row["file_path"]);
@@ -227,7 +237,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     redirect_back($request_id, $rk);
   }
 
-  // UPLOAD
+  // UPLOAD (registrar overwrites preview file)
   if ($action === "upload") {
     if (!isset($_FILES["req_file"]) || $_FILES["req_file"]["error"] !== UPLOAD_ERR_OK) {
       die("No file uploaded.");
@@ -238,7 +248,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $chk->execute();
     $ex = $chk->get_result()->fetch_assoc();
 
-    if ($ex && !empty($ex["verified_at"])) die("This requirement is VERIFIED. Upload is locked.");
+    // Optional lock: lock overwrite if verified
+    if ($ex && !empty($ex["verified_at"])) die("This file is VERIFIED. Upload is locked.");
 
     $tmp = $_FILES["req_file"]["tmp_name"];
     $size = (int)$_FILES["req_file"]["size"];
@@ -266,12 +277,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (!move_uploaded_file($tmp, $dest)) die("Upload failed.");
     $relative = str_replace("../", "", $dest);
 
-    // requirement_name from master
+    // requirement_name
     $reqName = null;
-    foreach ($reqs as $r) {
-      if ($r["requirement_key"] === $rk) { $reqName = $r["req_name"]; break; }
+
+    if ($rk === $SCANNED_KEY) {
+      $reqName = "Scanned Document";
+    } else {
+      foreach ($reqs as $r) {
+        if ($r["requirement_key"] === $rk) { $reqName = $r["req_name"]; break; }
+      }
+      if (!$reqName) $reqName = ucwords(str_replace("_"," ", $rk));
     }
-    if (!$reqName) $reqName = ucwords(str_replace("_"," ", $rk));
 
     if ($ex) {
       if (!empty($ex["file_path"]) && file_exists("../".$ex["file_path"])) {
@@ -305,12 +321,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $req_status = $_POST["req_status"] ?? [];
     $app_status = normalize_app_status($_POST["app_status"] ?? "");
 
-    // update requirement verification flags
+    // update requirement verification flags (only for actual requirements, not scanned_document)
     if (is_array($req_status)) {
       foreach ($req_status as $key => $val) {
         $key = trim((string)$key);
         $val = strtoupper(trim((string)$val));
         if ($key === "") continue;
+
+        // skip scanned_document in status list
+        if ($key === $SCANNED_KEY) continue;
 
         $row = $conn->prepare("SELECT id, verified_at FROM request_files WHERE request_id=? AND requirement_key=? LIMIT 1");
         $row->bind_param("is", $request_id, $key);
@@ -340,7 +359,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
           $up->execute();
           add_log($conn, $request_id, strtoupper($key) . " RESUBMIT REQUIRED");
         } else {
-          // PENDING = keep as not verified
           $up = $conn->prepare("
             UPDATE request_files
             SET verified_at=NULL, verified_by=NULL
@@ -352,7 +370,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       }
     }
 
-    // update request status (now supports READY FOR PICKUP + COMPLETED properly)
+    // update request status
     $allowed = ["PENDING","APPROVED","PROCESSING","READY FOR PICKUP","COMPLETED","RETURNED","CANCELLED","RELEASED","VERIFIED"];
     if ($app_status !== "" && in_array($app_status, $allowed, true)) {
       $upReq = $conn->prepare("UPDATE requests SET status=?, updated_at=NOW() WHERE id=?");
@@ -373,6 +391,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   <meta charset="UTF-8">
   <title>Verify Request</title>
   <link rel="stylesheet" href="../assets/css/verify_request.css">
+  <style>
+    /* safe additions (won't break your existing css) */
+    .preview-pdf {
+      width: 100%;
+      height: 520px;
+      border: none;
+      border-radius: 12px;
+      background: #fff;
+    }
+  </style>
 </head>
 <body>
 
@@ -461,9 +489,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       <div class="note">
         NOTE!!! Once the Application Status is <b>COMPLETED</b> scanned the document and upload it here
       </div>
+
+      <!-- ✅ NEW: SCANNED DOCUMENT line -->
+      <div class="req-row" style="margin-top:10px;">
+        <div class="req-name"><b>SCANNED DOCUMENT</b></div>
+        <div style="flex:1;"></div>
+        <a class="req-view" href="verify_request.php?id=<?= (int)$request_id ?>&rk=<?= urlencode($SCANNED_KEY) ?>">View</a>
+      </div>
     </div>
 
-    <!-- SAVE sends action=save -->
     <input type="hidden" name="action" value="save">
   </form>
 
@@ -472,11 +506,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <div class="preview-card">
       <div class="preview-title">
         <?php
-          $shownTitle = null;
-          foreach ($reqs as $r) {
-            if ($r["requirement_key"] === $rk) { $shownTitle = $r["req_name"]; break; }
+          if ($rk === $SCANNED_KEY) {
+            echo "SCANNED DOCUMENT";
+          } else {
+            $shownTitle = null;
+            foreach ($reqs as $r) {
+              if ($r["requirement_key"] === $rk) { $shownTitle = $r["req_name"]; break; }
+            }
+            echo h(strtoupper($shownTitle ?: $rk));
           }
-          echo h(strtoupper($shownTitle ?: $rk));
         ?>
       </div>
 
@@ -486,14 +524,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $path = "../".$selectedFile["file_path"];
             $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
           ?>
-          <?php if (in_array($ext, ["jpg","jpeg","png","webp"])): ?>
-            <img class="preview-img" src="<?= h($path) ?>" alt="Uploaded requirement">
+
+          <?php if ($ext === "pdf"): ?>
+            <!-- PDF preview -->
+            <iframe class="preview-pdf" src="<?= h($path) ?>"></iframe>
+            <div style="margin-top:8px;">
+              <!-- need to fix position <a href="<?= h($path) ?>" target="_blank">Open PDF in new tab</a> -->
+            </div>
+          <?php elseif (in_array($ext, ["jpg","jpeg","png","webp"])): ?>
+            <img class="preview-img" src="<?= h($path) ?>" alt="Uploaded file">
           <?php else: ?>
             <div class="preview-file">
               <b>Uploaded File:</b>
               <a href="<?= h($path) ?>" target="_blank"><?= h(basename($path)) ?></a>
             </div>
           <?php endif; ?>
+
         <?php else: ?>
           <div class="preview-empty">No file uploaded yet.</div>
         <?php endif; ?>
