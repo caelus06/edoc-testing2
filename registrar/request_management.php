@@ -139,7 +139,7 @@ function badgeClass($s){
     <div class="sb-section-title">MODULES</div>
     <nav class="sb-nav">
       <a class="sb-item" href="dashboard.php"><span class="sb-icon">🏠</span>Dashboard</a>
-      <a class="sb-item" href="request_management.php"><span class="sb-icon">📝</span>New Document Request</a>
+      <a class="sb-item" href="new_document_request.php"><span class="sb-icon">📝</span>New Document Request</a>
       <a class="sb-item active" href="request_management.php"><span class="sb-icon">🔎</span>Request Management</a>
       <a class="sb-item" href="track_progress.php"><span class="sb-icon">📍</span>Track Progress</a>
       <a class="sb-item" href="document_management.php"><span class="sb-icon">📄</span>Document Management</a>
@@ -299,10 +299,11 @@ function badgeClass($s){
         </div>
       </div>
 
-      <div class="footer-bar"></div>
+      
     </main>
   </div>
 </div>
+<div class="footer-bar"></div>
 
 <script>
 function toggleSidebar(){
