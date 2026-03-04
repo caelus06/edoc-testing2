@@ -150,38 +150,38 @@ $trk_ready      = countRequestsByStatus($conn, "READY FOR PICKUP");
 
       <div class="cards-track">
         <div class="track-left">
-          <a class="card clickable" href="request_management.php?status=PENDING">
+          <a class="card clickable" href="track_progress.php?status=PENDING">
             <div class="big"><?= (int)$trk_incoming ?></div>
             <div class="desc"><b>Incoming (Pending):</b> The digital document has been successfully submitted and is awaiting initial review.</div>
           </a>
 
-          <a class="card clickable" href="request_management.php?status=RETURNED">
+          <a class="card clickable" href="track_progress.php?status=RETURNED">
             <div class="big"><?= (int)$trk_returned ?></div>
             <div class="desc"><b>Returned (Resubmit):</b> Errors or missing info were found; the document is sent back for correction.</div>
           </a>
 
-          <a class="card clickable" href="request_management.php?status=VERIFIED">
+          <a class="card clickable" href="track_progress.php?status=VERIFIED">
             <div class="big"><?= (int)$trk_verified ?></div>
             <div class="desc"><b>Verified (Submit Soft Copy):</b> Individual documents have been checked and confirmed as correct.</div>
           </a>
 
-          <a class="card clickable" href="request_management.php?status=APPROVED">
+          <a class="card clickable" href="track_progress.php?status=APPROVED">
             <div class="big"><?= (int)$trk_approved ?></div>
             <div class="desc"><b>Approved (Submit Hard Copy):</b> All files are verified; submit physical original documents.</div>
           </a>
 
-          <a class="card clickable" href="request_management.php?status=PROCESSING">
+          <a class="card clickable" href="track_progress.php?status=PROCESSING">
             <div class="big"><?= (int)$trk_processing ?></div>
             <div class="desc"><b>Processing (Submission):</b> Physical documents have been received and are undergoing final formal handling.</div>
           </a>
 
-          <a class="card clickable" href="request_management.php?status=READY%20FOR%20PICKUP">
+          <a class="card clickable" href="track_progress.php?status=READY%20FOR%20PICKUP">
             <div class="big"><?= (int)$trk_ready ?></div>
             <div class="desc"><b>Ready for Pickup:</b> The process is finished; your items are ready for collection.</div>
           </a>
         </div>
 
-        <a class="card clickable report-card track-right" href="reports.php">
+        <a class="card report-card track-right">
           <div class="report-icon">📈</div>
           <div class="report-text">Reports &amp; Analytics</div>
         </a>

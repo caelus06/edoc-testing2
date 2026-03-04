@@ -287,17 +287,29 @@ function badgeClass($s){
         </table>
 
         <div class="pagination">
-          <?php
-            $qs = $_GET;
-            $prev = max(1, $page-1);
-            $next = min($totalPages, $page+1);
-            $qs["page"] = $prev;
-          ?>
-          <a href="request_management.php?<?= http_build_query($qs) ?>"><?= $page>1 ? $prev : 1 ?></a>
-          <div><?= $page ?></div>
-          <a href="request_management.php?<?= http_build_query(array_merge($_GET,["page"=>$next])) ?>" class="next">NEXT &gt;&gt;&gt;</a>
-        </div>
-      </div>
+    <?php
+        // Preserve current URL parameters but update the page index
+        $qs = $_GET;
+        $prev = max(1, $page - 1);
+        $next = min($totalPages, $page + 1);
+    ?>
+
+    <?php if ($page > 1): ?>
+        <?php $qs["page"] = $prev; ?>
+        <a href="request_management.php?<?= http_build_query($qs) ?>" class="next">
+            <<< BACK
+        </a>
+    <?php endif; ?>
+
+    <div class="page-number"><?= $page ?></div>
+
+    <?php if ($page < $totalPages): ?>
+        <?php $qs["page"] = $next; ?>
+        <a href="request_management.php?<?= http_build_query($qs) ?>" class="next">
+            NEXT >>>
+        </a>
+    <?php endif; ?>
+</div>
 
       
     </main>
