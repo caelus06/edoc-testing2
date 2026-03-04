@@ -11,7 +11,9 @@ $user_id = $_SESSION["user_id"];
 
 // Split "name" back into first/middle/last (simple approach)
 // If you want stricter, we can disable name editing.
-$name = trim($_POST["name"] ?? "");
+$first_name = trim($_POST["first_name"] ?? "");
+$middle_name = trim($_POST["middle_name"] ?? "");
+$last_name = trim($_POST["last_name"] ?? "");
 $suffix = trim($_POST["suffix"] ?? "");
 $student_id = trim($_POST["student_id"] ?? "");
 $course = trim($_POST["course"] ?? "");
@@ -25,15 +27,6 @@ $address = trim($_POST["address"] ?? "");
 // Basic email check (optional)
 if ($email !== "" && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
   die("Invalid email.");
-}
-
-// Name parse (very basic)
-$parts = preg_split('/\s+/', $name);
-$first_name = $parts[0] ?? "";
-$last_name = (count($parts) >= 2) ? $parts[count($parts)-1] : "";
-$middle_name = "";
-if (count($parts) > 2) {
-  $middle_name = implode(" ", array_slice($parts, 1, -1));
 }
 
 $stmt = $conn->prepare("
