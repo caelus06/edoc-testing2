@@ -26,7 +26,7 @@ if (!$u) {
   die("User not found.");
 }
 
-$fullName = trim($u["first_name"] . " " . ($u["middle_name"] ?? "") . " " . $u["last_name"]);
+// $fullName = trim($u["first_name"] . " " . ($u["middle_name"] ?? "") . " " . $u["last_name"]);
 
 // Image fallbacks (if missing)
 $frontImg = !empty($u["id_front_path"]) ? "../" . $u["id_front_path"] : "https://via.placeholder.com/900x500?text=No+Front+ID";
@@ -104,7 +104,9 @@ $badgeText = ($status === "VERIFIED") ? "✓ VERIFIED" : (($status === "REJECTED
                   </div>
                 ';
               }
-              row("name", "Name", $fullName);
+              row("first_name", "First Name", $u["first_name"]);
+              row("middle_name", "Middle Name", $u["middle_name"]);
+              row("last_name", "Last Name", $u["last_name"]);              
               row("suffix", "Suffix", $u["suffix"] ?: "N/A");
               row("student_id", "ID Number", $u["student_id"] ?: "N/A");
               row("course", "Course/Program", $u["course"] ?: "N/A");
