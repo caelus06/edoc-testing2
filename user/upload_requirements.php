@@ -40,14 +40,14 @@ if (!isset($_SESSION["user_id"]) || $_SESSION["role"] !== "USER") {
 <main class="container">
   <section class="banner">
     <h1>Upload Requirements</h1>
-    <p>Enter your reference number to upload the required documents.</p>
+    <p>Digital uploads are required for verification, but all official requirements must be submitted once verified and approved to the Registrar’s Office.</p>
   </section>
 
   <section class="panel">
     <a class="exit-btn" href="dashboard.php">EXIT</a>
 
     <div class="h2">Upload by Reference Number</div>
-    <p class="sub">Type your reference number exactly as shown on your request tracking page.</p>
+    <p class="sub">Type your reference number exactly as it appears on your request tracking page. Upload the required files, and review the complete list of requirements before submitting.</p>
 
     <form method="POST" action="upload_requirements_find.php">
       <label class="label">Reference Number *</label>
