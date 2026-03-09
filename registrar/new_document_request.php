@@ -204,7 +204,6 @@ if ($step === 2) {
   <title>New Document Request</title>
 
   <!-- ✅ IMPORTANT: load SAME layout CSS as request_management -->
-  <link rel="stylesheet" href="../assets/css/registrar_request_management.css">
   <link rel="stylesheet" href="../assets/css/new_document_request.css">
 </head>
 <body>
