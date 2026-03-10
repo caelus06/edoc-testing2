@@ -1,0 +1,338 @@
+/* registrar_document_managament.css - custom styles for document management module */
+
+
+*{ box-sizing:border-box; }
+body{ margin:0; font-family:Arial,sans-serif; background:#eef1f6; color:#111; }
+a{ color:inherit; }
+
+
+.layout{ display:flex; min-height:100vh; }
+
+
+/* Sidebar */
+.sidebar{
+  width:260px; background:#0a3a63; color:#fff; padding:14px 12px;
+}
+.sb-user{
+  display:flex; gap:10px; align-items:center;
+  padding:10px 8px 14px; border-bottom:1px solid rgba(255,255,255,.12); margin-bottom:10px;
+}
+.sb-user .avatar{
+  width:40px; height:40px; border-radius:10px; background:rgba(255,255,255,.12);
+  display:flex; align-items:center; justify-content:center; font-weight:900;
+}
+.sb-user .meta .name{ font-weight:900; font-size:13px; }
+.sb-user .meta .role{ font-size:11px; opacity:.9; }
+
+
+.sb-section-title{
+  margin:12px 8px 8px; font-size:12px; font-weight:900; letter-spacing:.4px; opacity:.95;
+}
+.sb-nav{ display:flex; flex-direction:column; gap:6px; }
+.sb-item{
+  display:flex; align-items:center; gap:10px;
+  padding:10px 10px; border-radius:10px; text-decoration:none;
+  color:#fff; font-weight:800; font-size:13px; opacity:.95;
+}
+.sb-item:hover{ background:rgba(0,0,0,.18); }
+.sb-item.active{ background:#0b2e4f; }
+.sb-icon{ width:22px; text-align:center; font-size:16px; }
+
+
+/* Topbar */
+.main{ flex:1; }
+.topbar{
+  background:#fff; border-bottom:2px solid #111;
+  padding:14px 18px; display:flex; align-items:center; gap:12px;
+}
+.hamburger{
+  width:44px; height:44px; border-radius:12px; border:1px solid #dfe3ea;
+  background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  font-size:22px;
+}
+.brand{ display:flex; align-items:center; gap:10px; font-weight:900; }
+.brand .logo{
+  width:40px; height:40px; border-radius:10px; border:1px solid #dfe3ea;
+  background:#fafafa; overflow:hidden; display:flex; align-items:center; justify-content:center;
+}
+.brand .logo img{ width:100%; height:100%; object-fit:contain; }
+
+
+/* re-use design tokens from registrar_dashboard for consistency */
+:root {
+    --primary-blue: #0a3a63;
+    --hover-blue: #0e4b7d;
+    --bg-gray: #eef1f6;
+    --text-main: #111;
+    --border-color: #dfe3ea;
+}
+
+
+body {
+    font-family: Arial, sans-serif;
+    background: var(--bg-gray);
+    color: var(--text-main);
+}
+
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+
+/* Filters line */
+.filters {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 8px 0 10px;
+}
+
+
+.filters .title {
+    font-size: 18px;
+    font-weight: 900;
+    margin-right: 10px;
+}
+
+
+.filters select {
+    height: 26px;
+    border: 1px solid #cfcfd4;
+    background: #e6e6e6;
+    padding: 0 8px;
+    font-size: 11px;
+    outline: none;
+}
+
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+}
+
+
+.table th,
+.table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+
+.table th {
+    background-color: #3a3a3a;
+    color: #fff;
+    font-weight: 900;
+    padding: 10px 8px;
+}
+
+
+.table tbody tr:hover {
+    background: #fafafa;
+}
+
+
+.table td {
+    padding: 14px 8px;
+    border-bottom: 1px solid #e9edf3;
+}
+
+
+.btn {
+    height: 26px;
+    padding: 0 14px;
+    border: 1px solid #cfcfd4;
+    cursor: pointer;
+    font-weight: 900;
+    font-size: 11px;
+}
+
+
+.filter-btn {
+    height: 26px;
+    padding: 0 14px;
+    background: #d9d9d9;
+    color: #2b2b2b;
+    border: 1px solid #cfcfd4;
+    font-weight: 900;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+
+.filter-btn:hover {
+    background: #c8c8c8;
+}
+
+
+.edit-btn {
+    background: #2b2b2b;
+    color: #fff;
+    border: 1px solid #2b2b2b;
+    min-width: 60px;
+    border-radius: 4px;
+}
+
+
+.edit-btn:hover {
+    background: #1a1a1a;
+}
+
+
+.add-btn {
+    background: #007bff;
+    color: #fff;
+    border: 1px solid #0056b3;
+    margin-left: auto;
+}
+
+
+.add-btn:hover {
+    background: #0056b3;
+}
+
+
+/* modal dialog */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+}
+
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 10% auto;
+    padding: 20px;
+    border: 1px solid var(--border-color);
+    width: 90%;
+    max-width: 400px;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+
+.close:hover {
+    color: #000;
+}
+
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+
+.form-group input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+
+.modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+
+.save-btn {
+    background: #2f7f7a;
+    border: 1px solid #2f7f7a;
+    color: #fff;
+}
+
+
+.save-btn:hover {
+    background: #256b67;
+}
+
+
+.cancel-btn {
+    background: #141a3a;
+    border: 1px solid #141a3a;
+    color: #fff;
+}
+
+
+.cancel-btn:hover {
+    background: #0f1429;
+}
+
+
+/* responsive tweaks */
+@media (max-width: 600px) {
+    .filters { flex-wrap: wrap; gap: 10px; }
+    .filters .title { width: 100%; }
+    .filters select, .filters button { flex: 1; }
+}
+
+
+/* Pagination */
+.pagination {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    align-items: center;
+    padding: 12px 0;
+    margin-top: 20px;
+}
+
+
+.pagination a {
+    text-decoration: none;
+    font-weight: 900;
+    font-size: 11px;
+    color: #333;
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+}
+
+
+.pagination .prev,
+.pagination .next {
+    background: #2f7f7a;
+    color: #fff;
+}
+
+
+.pagination .page-numbers {
+    display: flex;
+    gap: 4px;
+}
+
+
+.pagination .page-number.active {
+    background: #2f7f7a;
+    color: #fff;
+}
+
+

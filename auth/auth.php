@@ -114,12 +114,64 @@ $signupSuccess = (isset($_GET["signup"]) && $_GET["signup"] === "success");
 
         <div>
           <label class="label">COURSE/PROGRAM *</label>
-          <input class="input" name="course" placeholder="Ex. BS Computer Science" required>
+          <select class="input" name="course" id="courseSelect" required>
+            <option value="">--- SELECT COURSE/PROGRAM ---</option>
+
+            <optgroup label="School of Information Technology Education (SITE)">
+              <option value="BS COMPUTER SCIENCE">BS COMPUTER SCIENCE (BSCS)</option>
+              <option value="BS INFORMATION TECHNOLOGY">BS INFORMATION TECHNOLOGY (BSIT)</option>
+              <option value="ASSOCIATE IN COMPUTER SCIENCE">ASSOCIATE IN COMPUTER SCIENCE (ACS) (OLD)</option>
+            </optgroup>
+
+            <optgroup label="School of Health Sciences (SOHS)">
+              <option value="BS NURSING">BS NURSING (BSN)</option>
+              <option value="DIPLOMA IN MIDWIFERY">DIPLOMA IN MIDWIFERY (DM) (OLD)</option>
+            </optgroup>
+
+            <optgroup label="School of Engineering (SOE)">
+              <option value="BS CIVIL ENGINEERING">BS CIVIL ENGINEERING (BSCE)</option>
+              <option value="BS ELECTRICAL ENGINEERING">BS ELECTRICAL ENGINEERING (BSEE)</option>
+              <option value="BS COMPUTER ENGINEERING">BS COMPUTER ENGINEERING (BSCPE)</option>
+              <option value="ASSOCIATE IN COMPUTER TECHNOLOGY">ASSOCIATE IN COMPUTER TECHNOLOGY (ACPT) (OLD)</option>
+              <option value="BS MECHANICAL ENGINEERING">BS MECHANICAL ENGINEERING (BSME)</option>
+              <option value="BS ELECTRONICS ENGINEERING">BS ELECTRONICS ENGINEERING (BSECE)</option>
+              <option value="BS ELECTRONICS COMMUNICATION ENGINEERING">BS ELECTRONICS COMMUNICATION ENGINEERING (BSECE) (OLD)</option>
+              <option value="ASSOCIATE IN ELECTRONICS & COMMUNICATION">ASSOCIATE IN ELECTRONICS & COMMUNICATION (AEC) (OLD)</option>
+            </optgroup>
+
+            <optgroup label="School of Teacher Education (STE)">
+              <option value="BS EDUCATION">BS EDUCATION (BSED)</option>
+              <option value="BE EDUCATION">BE EDUCATION (BEED)</option>
+              <option value="BE EDUCATION MAJOR IN GENERAL EDUCATION">BE EDUCATION MAJOR IN GENERAL EDUCATION (BEED GENED)</option>
+            </optgroup>
+
+            <optgroup label="School of Humanities (SOH)">
+              <option value="BS PSYCHOLOGY">BS PSYCHOLOGY (BS PSYCH)</option>
+              <option value="AB MASS COMMUNICATION">AB MASS COMMUNICATION (ABMC) (OLD)</option>
+              <option value="AB COMMUNICATION">AB COMMUNICATION (ABC)</option>
+            </optgroup>
+
+            <optgroup label="School of Business and Accountancy (SBA)">
+              <option value="BS ACCOUNTANCY">BS ACCOUNTANCY (BSA)</option>
+              <option value="BS BUSINESS ADMINISTRATION MAJOR IN HUMAN RESOURCE DEVELOPMENT">BS BUSINESS ADMINISTRATION MAJOR IN HUMAN RESOURCE DEVELOPMENT (BSBA HRD)</option>
+              <option value="BS BUSINESS ADMINISTRATION MAJOR IN HUMAN RESOURCE DEVELOPMENT MANAGEMENT">BS BUSINESS ADMINISTRATION MAJOR IN HUMAN RESOURCE DEVELOPMENT MANAGEMENT (BSBA HRDM) (OLD)</option>
+              <option value="BS BUSINESS ADMINISTRATION">BS BUSINESS ADMINISTRATION (BSBA)</option>
+            </optgroup>
+
+            <optgroup label="School of International Hospitality Management (SIHM)">
+              <option value="BS HOTEL AND RESTAURANT MANAGEMENT">BS HOTEL AND RESTAURANT MANAGEMENT (BS HRM)</option>
+              <option value="ASSOCIATE HOTEL AND RESTAURANT MANAGEMENT">ASSOCIATE HOTEL AND RESTAURANT MANAGEMENT (AHRM)</option>
+              <option value="BS HOSPITALITY MANAGEMENT">BS HOSPITALITY MANAGEMENT (BS HM)</option>
+              <option value="BS TOURISM MANAGEMENT">BS TOURISM MANAGEMENT (BSTM)</option>
+            </optgroup>
+          </select>
         </div>
 
         <div>
           <label class="label">MAJOR</label>
-          <input class="input" name="major" placeholder="Ex. (Optional)">
+          <select class="input" name="major" id="majorSelect" disabled>
+            <option value="">--- SELECT MAJOR (IF APPLICABLE) ---</option>
+          </select>
         </div>
 
         <div>
@@ -162,5 +214,57 @@ $signupSuccess = (isset($_GET["signup"]) && $_GET["signup"] === "success");
 </main>
 
 <script src="../assets/js/auth.js"></script>
+
+<script>
+  const majorMap = {
+    "BS COMPUTER SCIENCE": [
+      "DATA SCIENCE",
+      "INTERNET ENGINEERING"
+    ],
+    "BS INFORMATION TECHNOLOGY": [
+      "WEB DEVELOPMENT",
+      "MULTIMEDIA ARTS",
+      "INFRASTRUCTURE W/ CYBERSECURITY"
+    ],
+    "BS EDUCATION": [
+      "BIOLOGICAL SCIENCE (BSED SCIE)",
+      "FILIPINO (BSED FIL)",
+      "MATH (BSED MATH)",
+      "ENGLISH (BSED ENG)",
+      "EARLY CHILDHOOD EDUCATION (BEED ECE)"
+    ],
+    "BS BUSINESS ADMINISTRATION": [
+      "FINANCIAL MANAGEMENT (BSBA FM)",
+      "MANAGEMENT ACCOUNTING (BSBA MA)",
+      "BANKING AND FINANCE",
+      "MARKETING MANAGEMENT (BSBA MM)"
+    ]
+  };
+
+  const courseSelect = document.getElementById("courseSelect");
+  const majorSelect = document.getElementById("majorSelect");
+
+  courseSelect.addEventListener("change", function () {
+    const selected = this.value;
+    const majors = majorMap[selected] || [];
+
+    majorSelect.innerHTML = '<option value="">--- SELECT MAJOR (IF APPLICABLE) ---</option>';
+
+    if (majors.length > 0) {
+      majors.forEach(function (m) {
+        const opt = document.createElement("option");
+        opt.value = m;
+        opt.textContent = m;
+        majorSelect.appendChild(opt);
+      });
+      majorSelect.disabled = false;
+      majorSelect.required = true;
+    } else {
+      majorSelect.disabled = true;
+      majorSelect.required = false;
+    }
+  });
+</script>
+
 </body>
 </html>
