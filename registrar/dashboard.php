@@ -90,7 +90,7 @@ $trk_ready      = countRequestsByStatus($conn, "READY FOR PICKUP");
       <a class="sb-item" href="new_document_request.php"><span class="sb-icon">📝</span>New Document Request</a>
       <a class="sb-item" href="request_management.php"><span class="sb-icon">🔎</span>Request Management</a>
       <a class="sb-item" href="track_progress.php"><span class="sb-icon">📍</span>Track Progress</a>
-      <a class="sb-item" href="requirements.php"><span class="sb-icon">📄</span>Document Management</a>
+      <a class="sb-item" href="document_management.php"><span class="sb-icon">📄</span>Document Management</a>
       <a class="sb-item" href="create_document.php"><span class="sb-icon">➕</span>Create Document</a>
     </nav>
 

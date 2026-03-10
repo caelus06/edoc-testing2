@@ -20,17 +20,39 @@ $pStmt->execute();
 $proc = $pStmt->get_result()->fetch_assoc();
 
 $workingDays = $proc["working_days"] ?? "—";
-$processHtml = $proc["process_html"] ?? "<b>Application Process</b><br><br>(No process info yet)";
+$rawProcess  = $proc["process_html"] ?? "";
 
-// title types (Graduate, Not-Graduate, etc.)
-$tStmt = $conn->prepare("SELECT DISTINCT title_type FROM requirements_master WHERE document_type = ? ORDER BY title_type ASC");
+// ── FIX 1: Decode process_html JSON → extract application_process entries ──
+$appProcessItems = [];
+$reminders       = [];
+
+$decoded = json_decode($rawProcess, true);
+if (is_array($decoded)) {
+  // New JSON format (saved by edit_document.php)
+  $appProcessItems = $decoded["application_process"] ?? [];
+  $reminders       = $decoded["reminders"]           ?? [];
+} else {
+  // Legacy raw HTML fallback
+  $appProcessItems = [["id" => "", "details" => strip_tags($rawProcess)]];
+}
+
+// title types
+$tStmt = $conn->prepare(
+  "SELECT DISTINCT title_type FROM requirements_master
+   WHERE document_type = ?
+   ORDER BY title_type ASC"
+);
 $tStmt->bind_param("s", $document_type);
 $tStmt->execute();
 $titleTypes = $tStmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-// requirements per title type
-$reqStmt = $conn->prepare("SELECT req_name FROM requirements_master WHERE document_type=? AND title_type=? ORDER BY id ASC");
-
+// ── FIX 2: Exclude __placeholder__ rows from requirements query ──
+$reqStmt = $conn->prepare(
+  "SELECT req_name FROM requirements_master
+   WHERE document_type = ? AND title_type = ?
+     AND req_name != '__placeholder__'
+   ORDER BY id ASC"
+);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -45,6 +67,10 @@ $reqStmt = $conn->prepare("SELECT req_name FROM requirements_master WHERE docume
     .doc-title{ font-weight:900; font-size:18px; }
     .workdays{ font-size:11px; margin-top:6px; }
     .section h3{ font-size:13px; font-weight:900; margin:12px 0 6px; }
+    .process-item { margin-bottom: 12px; white-space: pre-line; font-size: 13px; line-height: 1.6; }
+    .reminder-block { margin-bottom: 10px; }
+    .reminder-title { font-weight: 700; font-size: 12px; margin-bottom: 3px; }
+    .reminder-detail { font-size: 12px; white-space: pre-line; line-height: 1.55; }
   </style>
 </head>
 <body>
@@ -70,7 +96,7 @@ $reqStmt = $conn->prepare("SELECT req_name FROM requirements_master WHERE docume
   <section class="panel">
     <div class="note">
       <span class="pin">📌</span><b>Please note: Read carefully the requirement</b><br>
-      Digital uploads are required for verification, but all official requirements must be submitted once verified and approved to the Registrar’s Office
+      Digital uploads are required for verification, but all official requirements must be submitted once verified and approved to the Registrar's Office
     </div>
 
     <div class="section">
@@ -91,23 +117,38 @@ $reqStmt = $conn->prepare("SELECT req_name FROM requirements_master WHERE docume
             $reqStmt->bind_param("ss", $document_type, $title);
             $reqStmt->execute();
             $reqs = $reqStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+            // Skip title groups that only had placeholder rows
+            if (empty($reqs)) continue;
           ?>
           <h3><?= htmlspecialchars($title) ?></h3>
           <ul>
-            <?php if (count($reqs) === 0): ?>
-              <li>(No requirements)</li>
-            <?php else: ?>
-              <?php foreach ($reqs as $r): ?>
-                <li><?= htmlspecialchars($r["req_name"]) ?></li>
-              <?php endforeach; ?>
-            <?php endif; ?>
+            <?php foreach ($reqs as $r): ?>
+              <li><?= htmlspecialchars($r["req_name"]) ?></li>
+            <?php endforeach; ?>
           </ul>
         <?php endforeach; ?>
       <?php endif; ?>
 
-      <div class="section">
-        <?= $processHtml ?>
-      </div>
+      <!-- ── Reminders ── -->
+      <?php if (!empty($reminders)): ?>
+        <h3>Reminders</h3>
+        <?php foreach ($reminders as $rem): ?>
+          <div class="reminder-block">
+            <?php if (!empty($rem["title_type"])): ?>
+              <div class="reminder-title"><?= htmlspecialchars($rem["title_type"]) ?></div>
+            <?php endif; ?>
+            <div class="reminder-detail"><?= htmlspecialchars($rem["details"]) ?></div>
+          </div>
+        <?php endforeach; ?>
+      <?php endif; ?>
+
+      <!-- ── Application Process ── -->
+      <?php if (!empty($appProcessItems)): ?>
+        <h3>Application Process</h3>
+        <?php foreach ($appProcessItems as $ap): ?>
+          <div class="process-item"><?= htmlspecialchars($ap["details"]) ?></div>
+        <?php endforeach; ?>
+      <?php endif; ?>
 
       <a class="return-btn" href="application_process.php">RETURN</a>
     </div>
