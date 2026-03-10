@@ -146,34 +146,77 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
   // ── Delete Title ────────────────────────────────────────────────────────────
   if ($action === "delete_title") {
-    $titleName = trim($_POST["title_name"] ?? "");
-    if ($titleName) {
-      $del = $conn->prepare("DELETE FROM requirements_master WHERE document_type=? AND title_type=?");
-      $del->bind_param("ss", $docType, $titleName);
-      $del->execute();
-      echo json_encode(["success" => true]);
-    } else {
-      echo json_encode(["success" => false, "error" => "Title name required."]);
+
+  $titleName = trim($_POST["title_name"] ?? "");
+
+  if ($titleName) {
+
+    // Delete requirements under this title
+    $del = $conn->prepare("DELETE FROM requirements_master WHERE document_type=? AND title_type=?");
+    $del->bind_param("ss", $docType, $titleName);
+    $del->execute();
+
+    // Remove reminders linked to this title
+    $pData = getFreshProcessData($conn, $docId);
+
+    if (!empty($pData["reminders"])) {
+      $pData["reminders"] = array_values(array_filter(
+        $pData["reminders"],
+        fn($r) => ($r["title_type"] ?? "") !== $titleName
+      ));
     }
-    exit();
+
+    // Save updated JSON
+    $newJson = json_encode($pData);
+    $upd = $conn->prepare("UPDATE document_process SET process_html=?, last_updated=NOW(), updated_by=? WHERE id=?");
+    $upd->bind_param("sii", $newJson, $registrarId, $docId);
+    $upd->execute();
+
+    echo json_encode(["success" => true]);
+
+  } else {
+    echo json_encode(["success" => false, "error" => "Title name required."]);
   }
+
+  exit();
+}
 
   // ── Add Requirement ─────────────────────────────────────────────────────────
   if ($action === "add_requirement") {
-    $titleType = trim($_POST["title_type"] ?? "");
-    $reqName   = trim($_POST["req_name"] ?? "");
-    $reqKey    = trim($_POST["req_key"] ?? strtolower(str_replace(" ", "_", $reqName)));
-    if ($titleType && $reqName) {
-      $ins = $conn->prepare("INSERT INTO requirements_master (document_type, title_type, req_name, requirement_key) VALUES (?, ?, ?, ?)");
-      $ins->bind_param("ssss", $docType, $titleType, $reqName, $reqKey);
-      $ins->execute();
-      $newId = $conn->insert_id;
-      echo json_encode(["success" => true, "id" => $newId, "req_name" => $reqName, "title_type" => $titleType, "req_key" => $reqKey]);
-    } else {
-      echo json_encode(["success" => false, "error" => "All fields required."]);
-    }
-    exit();
+  $titleType = trim($_POST["title_type"] ?? "");
+  $reqName   = trim($_POST["req_name"] ?? "");
+  $reqKey    = trim($_POST["req_key"] ?? strtolower(str_replace(" ", "_", $reqName)));
+
+  if ($titleType && $reqName) {
+
+    // REMOVE placeholder if it exists
+    $conn->query("DELETE FROM requirements_master 
+                  WHERE document_type='$docType' 
+                  AND title_type='$titleType' 
+                  AND req_name='__placeholder__'");
+
+    $ins = $conn->prepare("
+      INSERT INTO requirements_master 
+      (document_type, title_type, req_name, requirement_key) 
+      VALUES (?, ?, ?, ?)
+    ");
+    $ins->bind_param("ssss", $docType, $titleType, $reqName, $reqKey);
+    $ins->execute();
+
+    $newId = $conn->insert_id;
+
+    echo json_encode([
+      "success" => true,
+      "id" => $newId,
+      "req_name" => $reqName,
+      "title_type" => $titleType,
+      "req_key" => $reqKey
+    ]);
+  } else {
+    echo json_encode(["success" => false, "error" => "All fields required."]);
   }
+  exit();
+}
 
   // ── Edit Requirement ────────────────────────────────────────────────────────
   if ($action === "edit_requirement") {
