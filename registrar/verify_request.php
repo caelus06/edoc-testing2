@@ -211,7 +211,83 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
   // trust rk from POST for actions
   $rk = trim($_POST["rk"] ?? $rk);
-  if ($rk === "") $rk = "valid_id";
+  // if ($rk === "") $rk = "valid_id";
+
+  // SAVE
+  if ($action === "save") {
+    $req_status = $_POST["req_status"] ?? [];
+    $app_status = normalize_app_status($_POST["app_status"] ?? "");
+
+    // 1. Update Requirements ONLY IF changed
+        if (is_array($req_status)) {
+            foreach ($req_status as $key => $val) {
+                $key = trim((string)$key);
+                $val = strtoupper(trim((string)$val));
+                if ($key === "" || $key === $SCANNED_KEY) continue;
+
+                $row = $conn->prepare("SELECT id, verified_at FROM request_files WHERE request_id=? AND requirement_key=? LIMIT 1");
+                $row->bind_param("is", $request_id, $key);
+                $row->execute();
+                $rf = $row->get_result()->fetch_assoc();
+                if (!$rf) continue;
+
+              // is currently verified
+               $isCurrentlyVerified = !empty($rf["verified_at"]);
+
+                // Handle Status Transitions
+                if ($val === "VERIFIED" && !$isCurrentlyVerified) {
+                  // Change from Not Verified to Verified
+                    $up = $conn->prepare("
+                      UPDATE request_files 
+                      SET verified_at=NOW(), verified_by=?  
+                      WHERE request_id=? AND requirement_key=? 
+                    ");
+                    $up->bind_param("iis", $registrar_id, $request_id, $key);
+                    $up->execute();
+                    add_log($conn, $request_id, "Registrar Update: " . ucfirst($key) . " has been verified");
+                } elseif ($val === "RESUBMIT" && $isCurrentlyVerified) {
+                    // Downgrade from Verified to Resubmit
+                    $up = $conn->prepare("
+                      UPDATE request_files 
+                      SET verified_at=NULL, verified_by=NULL 
+                      WHERE request_id=? AND requirement_key=?
+                    ");
+                    $up->bind_param("is", $request_id, $key);
+                    $up->execute();
+                    add_log($conn, $request_id, "Registrar Update: Resubmission required for " . ucfirst($key));
+                  } elseif ($val === "PENDING" && $isCurrentlyVerified) {
+                    // Downgrade from Verified to Pending
+                    $up = $conn->prepare("
+                      UPDATE request_files
+                      SET verified_at=NULL, verified_by=NULL
+                      WHERE request_id=? AND requirement_key=?
+                    ");
+                    $up->bind_param("is", $request_id, $key);
+                    $up->execute();
+                    add_log($conn, $request_id, "Registrar Update: " . ucfirst($key) . " returned to Pending");
+                  }
+                  // Note: If $val matches the current state (Verified -> Verified, etc.), no code executes = no duplicate logs.
+            }
+        }
+
+        // 2. Update Application Status ONLY IF changed
+        $allowed = ["PENDING","APPROVED","PROCESSING","READY FOR PICKUP","COMPLETED","RETURNED","CANCELLED","RELEASED","VERIFIED"];
+        if ($app_status !== "" && in_array($app_status, $allowed, true)) {
+            // Check current status in DB
+            $currQ = $conn->prepare("SELECT status FROM requests WHERE id = ?");
+            $currQ->bind_param("i", $request_id);
+            $currQ->execute();
+            $currentDBStatus = normalize_app_status($currQ->get_result()->fetch_assoc()['status'] ?? "");
+
+            if ($app_status !== $currentDBStatus) {
+                $upReq = $conn->prepare("UPDATE requests SET status=?, updated_at=NOW() WHERE id=?");
+                $upReq->bind_param("si", $app_status, $request_id);
+                $upReq->execute();
+                add_log($conn, $request_id, "Registrar Update: Application status updated to " . $app_status);
+            }
+        }
+        redirect_back($request_id, $rk);
+    }
 
   // DELETE
   if ($action === "delete") {
@@ -233,7 +309,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $del->bind_param("i", $row["id"]);
     $del->execute();
 
-    add_log($conn, $request_id, "REGISTRAR DELETED FILE: " . strtoupper($rk));
+    add_log($conn, $request_id, "Registrar Update: Removed " . ucfirst($rk));
     redirect_back($request_id, $rk);
   }
 
@@ -312,77 +388,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       $ins->execute();
     }
 
-    add_log($conn, $request_id, "REGISTRAR UPLOADED FILE: " . strtoupper($rk));
-    redirect_back($request_id, $rk);
-  }
-
-  // SAVE
-  if ($action === "save") {
-    $req_status = $_POST["req_status"] ?? [];
-    $app_status = normalize_app_status($_POST["app_status"] ?? "");
-
-    // update requirement verification flags (only for actual requirements, not scanned_document)
-    if (is_array($req_status)) {
-      foreach ($req_status as $key => $val) {
-        $key = trim((string)$key);
-        $val = strtoupper(trim((string)$val));
-        if ($key === "") continue;
-
-        // skip scanned_document in status list
-        if ($key === $SCANNED_KEY) continue;
-
-        $row = $conn->prepare("SELECT id, verified_at FROM request_files WHERE request_id=? AND requirement_key=? LIMIT 1");
-        $row->bind_param("is", $request_id, $key);
-        $row->execute();
-        $rf = $row->get_result()->fetch_assoc();
-        if (!$rf) continue;
-
-        // lock downgrade if already verified
-        if (!empty($rf["verified_at"]) && $val !== "VERIFIED") continue;
-
-        if ($val === "VERIFIED") {
-          $up = $conn->prepare("
-            UPDATE request_files
-            SET verified_at=NOW(), verified_by=?
-            WHERE request_id=? AND requirement_key=?
-          ");
-          $up->bind_param("iis", $registrar_id, $request_id, $key);
-          $up->execute();
-          add_log($conn, $request_id, strtoupper($key) . " VERIFIED");
-        } elseif ($val === "RESUBMIT") {
-          $up = $conn->prepare("
-            UPDATE request_files
-            SET verified_at=NULL, verified_by=NULL
-            WHERE request_id=? AND requirement_key=?
-          ");
-          $up->bind_param("is", $request_id, $key);
-          $up->execute();
-          add_log($conn, $request_id, strtoupper($key) . " RESUBMIT REQUIRED");
-        } else {
-          $up = $conn->prepare("
-            UPDATE request_files
-            SET verified_at=NULL, verified_by=NULL
-            WHERE request_id=? AND requirement_key=?
-          ");
-          $up->bind_param("is", $request_id, $key);
-          $up->execute();
-        }
-      }
-    }
-
-    // update request status
-    $allowed = ["PENDING","APPROVED","PROCESSING","READY FOR PICKUP","COMPLETED","RETURNED","CANCELLED","RELEASED","VERIFIED"];
-    if ($app_status !== "" && in_array($app_status, $allowed, true)) {
-      $upReq = $conn->prepare("UPDATE requests SET status=?, updated_at=NOW() WHERE id=?");
-      $upReq->bind_param("si", $app_status, $request_id);
-      $upReq->execute();
-      add_log($conn, $request_id, "APPLICATION STATUS UPDATED TO: " . $app_status);
-    }
-
+    add_log($conn, $request_id, "Registrar Update: " . ucfirst($rk) . " uploaded");
     redirect_back($request_id, $rk);
   }
 
   die("Invalid action.");
+  
 }
 ?>
 <!DOCTYPE html>
@@ -448,7 +459,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     </div>
 
     <div class="block">
-      <div class="block-title">SELECT Requirements Status</div>
+      <div class="block-title">Requirements Status</div>
 
       <?php foreach ($reqs as $r): ?>
         <?php
@@ -461,16 +472,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
           <div class="req-name"><?= h($r["req_name"]) ?></div>
 
           <select class="req-select" name="req_status[<?= h($key) ?>]">
-            <option value="PENDING"  <?= $statusVal==="PENDING" ? "selected" : "" ?>>DOCUMENT STATUS "PENDING"</option>
-            <option value="VERIFIED" <?= $statusVal==="VERIFIED" ? "selected" : "" ?>>PRESS (1) VERIFIED</option>
-            <option value="RESUBMIT">PRESS (2) RESUBMIT</option>
+            <option value="PENDING"  <?= $statusVal==="PENDING" ? "selected" : "" ?>>PENDING</option>
+            <option value="VERIFIED" <?= $statusVal==="VERIFIED" ? "selected" : "" ?>>VERIFIED</option>
+            <option value="RESUBMIT">RESUBMIT</option>
           </select>
 
           <a class="req-view" href="verify_request.php?id=<?= (int)$request_id ?>&rk=<?= urlencode($key) ?>">View</a>
         </div>
       <?php endforeach; ?>
 
-      <div class="block-title" style="margin-top:14px;">SELECT Application Status</div>
+      <div class="block-title" style="margin-top:14px;">Application Status</div>
       <div class="app-row">
         <select class="app-select" name="app_status">
           <?php
@@ -479,11 +490,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             foreach ($opts as $o):
           ?>
             <option value="<?= h($o) ?>" <?= $app===$o ? "selected" : "" ?>>
-              <?= ($o==="COMPLETED") ? 'APPLICATION STATUS "COMPLETE"' : 'APPLICATION STATUS "'.$o.'"' ?>
+              <?= ($o==="COMPLETED") ? 'APPLICATION STATUS "COMPLETE"' : ''.$o?>
             </option>
           <?php endforeach; ?>
         </select>
-        <div class="app-help">PRESS (1)APPROVED (2)PROCESSING (3)READY FOR PICKUP (4)COMPLETE</div>
+        <div class="app-help">Application Status: Approved, Processing, Ready for Pickup, and Complete.</div>
       </div>
 
       <div class="note">
