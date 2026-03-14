@@ -299,7 +299,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (!$row) die("No file found for this item. Nothing to delete.");
 
     // Optional lock: lock delete if verified (applies even to scanned_document)
-    if (!empty($row["verified_at"])) die("This file is VERIFIED. Delete is locked.");
+    // Added a "lock" Mechanism so that if you change a status (for example, from Verified back to Pending), 
+    // it will show a message "This file is VERIFIED. Delete is locked." to delete it you need to change first the status to pending 
+    // then delete the file.  
+    // if (!empty($row["verified_at"])) die("This file is VERIFIED. Delete is locked.");
 
     if (!empty($row["file_path"]) && file_exists("../" . $row["file_path"])) {
       @unlink("../" . $row["file_path"]);
