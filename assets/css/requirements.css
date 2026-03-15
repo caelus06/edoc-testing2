@@ -1,0 +1,273 @@
+/* --- Academic Professional Palette --- 
+   Primary: #002699 (Deep Navy)
+   Secondary: #29ABE2 (Vibrant Blue)
+   Background: #F8FAFC (Ghost White)
+   Surface: #FFFFFF (White)
+   Text: #1E293B (Dark Slate)
+---------------------------------------- */
+
+:root {
+  --primary: #002699;
+  --primary-hover: #001f80;
+  --secondary: #29ABE2;
+  --bg-color: #F8FAFC;
+  --surface: #FFFFFF;
+  --text-main: #1E293B;
+  --text-muted: #64748B;
+  --border: #E2E8F0;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+* { 
+  box-sizing: border-box; 
+  transition: all 0.2s ease-in-out;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: var(--bg-color);
+  color: var(--text-main);
+  line-height: 1.6;
+}
+
+/* TOPBAR */
+.topbar {
+background: var(--surface);
+border-bottom: 1px solid var(--border);
+padding: 1rem 5%;
+display: flex;
+align-items: center;
+justify-content: space-between;
+position: sticky;
+top: 0;
+z-index: 100;
+box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  font-weight: 700;
+  color: var(--primary);
+  font-size: 1.1rem;
+  letter-spacing: -0.01em;
+}
+
+.brand:hover{
+  text-decoration: underline;
+}
+/* Waiting for design decision on logo, so I commented out the logo styles for now. */
+/* .logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+} */
+
+.nav {
+display: flex;
+align-items: center;
+gap: 24px;
+}
+
+.nav a {
+text-decoration: none;
+color: var(--text-main);
+font-size: 0.95rem;
+font-weight: 600;
+}
+
+.nav a:hover {
+color: var(--secondary);
+}
+
+.nav a[href*="auth"] {
+background: var(--primary);
+color: white;
+padding: 8px 18px;
+border-radius: 6px;
+}
+
+.nav a[href*="auth"]:hover {
+background: var(--primary-hover);
+transform: translateY(-8px);
+}
+
+/* CONTAINER */
+.container {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+/* HERO SECTION */
+.hero {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.hero h1 {
+  color: var(--primary);
+  font-size: 2.2rem;
+  margin-bottom: 10px;
+  font-weight: 800;
+}
+
+.hero p {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+}
+
+/* PANEL */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: var(--shadow);
+}
+
+/* FORM ELEMENTS */
+.label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+select, input {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #F1F5F9;
+  font-size: 1rem;
+  outline: none;
+  margin-bottom: 20px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 18px;
+}
+
+select:focus {
+  border-color: var(--secondary);
+  background-color: #fff;
+  box-shadow: 0 0 0 4px rgba(41, 171, 226, 0.1);
+}
+
+select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #E2E8F0;
+}
+
+/* BUTTONS */
+.btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 14px 20px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  font-size: 1rem;
+  display: inline-block;
+  text-align: center;
+  text-decoration: none;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--primary-hover);
+  transform: translateY(-8px);
+  box-shadow: 0 6px 20px rgba(0, 38, 153, 0.3);
+}
+
+.btn:disabled {
+  background: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* TABLE STYLING */
+.table-wrap {
+  margin-top: 25px;
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+th {
+  background: #F1F5F9;
+  color: var(--primary);
+  text-align: left;
+  padding: 16px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+td {
+  padding: 16px;
+  border-top: 1px solid var(--border);
+  font-size: 1rem;
+  color: var(--text-main);
+}
+
+tr:hover td {
+  background: #F8FAFC;
+}
+
+.small {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 20px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 600px) {
+  .topbar {
+    flex-direction: column;
+    padding: 15px;
+    gap: 15px;
+  }
+  .topbar nav {
+    gap: 15px;
+  }
+  .container {
+    margin: 20px auto;
+  }
+  .hero h1 {
+    font-size: 1.8rem;
+  }
+  .panel {
+    padding: 20px;
+  }
+}

@@ -3,21 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <title>Track Request</title>
-  <link rel="stylesheet" href="assets/css/home.css">
-  <link rel="stylesheet" href="assets/css/auth.css">
+  <link rel="stylesheet" href="assets/css/track_request.css">
 
 </head>
 <body>
 
-<header class="top-nav">
+<header class="topbar">
   <a class="brand" href="index.php">
-    <span class="brand-logo">
-      <img src="assets/img/edoc-logo.jpeg" alt="E-Doc Logo">
+    <span class="logo">
+      <!-- Optional small logo Waiting for design -->
+      <!-- <img src="assets/img/edoc-logo.jpeg" alt="E-Doc Logo"> -->
     </span>
-    <span class="brand-title">Document Requesting System</span>
+    <span class="brand-title">E-Doc: Document Requesting System</span>
   </a>
 
-  <nav>
+  <nav class="nav">
     <a href="track_request.php">Track Request</a>
     <a href="requirements.php">Requirements</a>
     <a href="auth/auth.php">Login</a>
@@ -84,11 +84,13 @@ btn.addEventListener("click", async () => {
               <tr><th>STATUS UPDATE</th><th>DATE</th></tr>
             </thead>
             <tbody>
-              ${data.logs.map(x => `
-                <tr>
-                  <td>${(x.message||"")}</td>
-                  <td>${(x.created_at||"")}</td>
-                </tr>
+              ${data.logs
+              .sort((a,b) => new Date(b.created_at) - new Date(a.created_at))
+                .map((x) => `
+                  <tr>
+                    <td>${(x.message||"")}</td>
+                    <td>${(x.created_at||"")}</td>
+                  </tr>
               `).join("")}
             </tbody>
           </table>
