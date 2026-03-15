@@ -11,21 +11,21 @@ if ($res) while ($row = $res->fetch_assoc()) $docs[] = $row["document_type"];
 <head>
   <meta charset="UTF-8" />
   <title>View Requirements</title>
-  <link rel="stylesheet" href="assets/css/home.css">
-  <link rel="stylesheet" href="assets/css/auth.css">
+  <link rel="stylesheet" href="assets/css/requirements.css">
 
 </head>
 <body>
 
-<header class="top-nav">
+<header class="topbar">
   <a class="brand" href="index.php">
-    <span class="brand-logo">
-      <img src="assets/img/edoc-logo.jpeg" alt="E-Doc Logo">
+    <span class="logo">
+       <!-- Optional small logo Waiting for design -->
+      <!-- <img src="assets/img/edoc-logo.jpeg" alt="E-Doc Logo"> -->
     </span>
-    <span class="brand-title">Document Requesting System</span>
+    <span class="brand-title">E-Doc: Document Requesting System</span>
   </a>
 
-  <nav>
+  <nav class="nav">
     <a href="track_request.php">Track Request</a>
     <a href="requirements.php">Requirements</a>
     <a href="auth/auth.php">Login</a>

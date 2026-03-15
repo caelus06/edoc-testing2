@@ -10,22 +10,20 @@ $signupSuccess = (isset($_GET["signup"]) && $_GET["signup"] === "success");
 </head>
 <body>
 
-<header class="top-nav">
+<header class="topbar">
   <a class="brand" href="../index.php">
-    <span class="brand-logo">
-      <img src="../assets/img/edoc-logo.jpeg" >
+    <span class="logo">
+      <!-- Optional small logo Waiting for design -->
+      <!-- <img src="../assets/img/edoc-logo.jpeg" > -->
     </span>
-    <span class="brand-title">Document Requesting System</span>
+    <span class="brand-title">E-Doc: Document Requesting System</span>
   </a>
-  <nav>
+  <nav class="nav">
     <a href="../track_request.php">Track Request</a>
     <a href="../requirements.php">Requirements</a>
     <a class="active-link" href="auth.php">Login</a>
   </nav>
 </header>
-
-
-
 
 <main class="page">
   <section class="card">

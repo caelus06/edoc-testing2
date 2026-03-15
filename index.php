@@ -11,10 +11,10 @@
 <header class="topbar">
   <div class="brand">
     <div class="logo">
-      <!-- Optional small logo -->
-      <img src="assets/img/edoc-logo.jpeg">
+      <!-- Optional small logo Waiting for design -->
+      <!-- <img src="assets/img/edoc-logo.jpeg">  -->
     </div>
-    <div>Document Requesting System</div>
+    <span class="brand-title">E-Doc: Document Requesting System</span>
   </div>
 
   <nav class="nav">
@@ -58,21 +58,21 @@
       <div class="card">
         <div class="ic">👤</div>
         <h3>Login</h3>
-        <p>Login to Request Document<br/>Transcript, Diploma, Certifications</p>
+        <p>Log in to securely request and track documents.</p>
         <a class="btn" href="auth/auth.php">LOGIN</a>
       </div>
 
       <div class="card">
         <div class="ic">📄</div>
         <h3>Requirements</h3>
-        <p>Birth Certificate, Clearance</p>
+        <p>View document requirements for your application.</p>
         <a class="btn" href="requirements.php">Requirements</a>
       </div>
 
       <div class="card">
         <div class="ic">🔎</div>
         <h3>Track Request</h3>
-        <p>Real-time request updates</p>
+        <p>Monitor your request status and progress updates.</p>
         <a class="btn" href="track_request.php">TRACK REQUEST</a>
       </div>
     </div>
@@ -132,7 +132,9 @@
 
 </main>
 
-<div class="footer-bar"></div>
+<footer class="footer-bar">
+  <p class="content">E-Doc Document Requesting System</p>
+</footer>
 
 </body>
 </html>
