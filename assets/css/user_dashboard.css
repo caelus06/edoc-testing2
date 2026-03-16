@@ -85,7 +85,6 @@ body {
 
 .top-icons { display: flex; gap: 12px; align-items: center; }
 
-
 .icon-btn {
   width: 42px;
   height: 42px;
@@ -99,12 +98,10 @@ body {
   font-size: 18px;
 }
 
-
 .icon-btn:hover {
   background: #F1F5F9;
   border-color: var(--secondary);
 }
-
 
 .icon-btn a {
   text-decoration: none;
@@ -116,10 +113,106 @@ body {
   justify-content: center;
 }
 
+/* MODAL & NOTIFICATIONS */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  width: 100%;
+  max-width: 420px;
+  max-height: 80vh;
+  overflow:auto;
+  background: var(--surface);
+  border-radius:16px;
+  border:2px solid #333;
+  position:relative;
+  box-shadow: var(--shadow-lg);
+  padding: 24px;
+  /* Scroll function need for further enhancement */
+  /* overflow: hidden; */
+  display: flex;
+  flex-direction: column;
+}
+
+.modal h3 { margin: 0 0 20px; font-size: 1.25rem; font-weight: 800; color: var(--primary); }
+
+.close-x {
+  position: absolute;
+  top: 20px; right: 20px;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: #F8FAFC;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+
+
+/* LOGOUT SPECIFIC STYLES */
+.logout-content { text-align: center; }
+.logout-actions { display: flex; gap: 12px; margin-top: 24px; }
+
+.btn-cancel, .btn-confirm {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+}
+
+
+.btn-cancel {
+  background: #F1F5F9;
+  color: var(--text-main);
+  border: 1px solid var(--border);
+}
+
+
+.btn-cancel:hover { background: #E2E8F0; }
+
+
+.btn-confirm {
+  background: #EF4444;
+  color: white;
+  border: none;
+}
+
+.btn-confirm:hover { background: #DC2626; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2); }
+
+.notif-item { padding: 15px 0; border-bottom: 1px solid var(--border); }
+.notif-item:last-child { border-bottom: none; }
+.notif-title { font-weight: 700; font-size: 0.9rem; color: var(--text-main); margin-bottom: 4px; }
+.notif-time { font-size: 0.75rem; color: var(--text-muted); }
+
+.notif-wrap{ position:relative; display:inline-flex; }
+.notif-badge {
+  position: absolute;
+  top: -4px; right: -4px;
+  background: #EF4444;
+  color: white;
+  font-size: 10px;
+  font-weight: 800;
+  padding:0 5px;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--surface);
+}
 
 /* MAIN CONTAINER */
 .container { max-width: 1100px; margin: 2rem auto 80px; padding: 0 20px; }
-
 
 /* WELCOME PANEL */
 .panel.welcome {
@@ -133,10 +226,8 @@ body {
   box-shadow: var(--shadow-lg);
 }
 
-
 .welcome h2 { margin: 0; font-size: 2rem; font-weight: 800; }
 .welcome p { margin: 8px 0 0; opacity: 0.9; font-weight: 400; }
-
 
 /* ACTION CARDS */
 .cards {
@@ -161,18 +252,15 @@ body {
   text-align: center;
 }
 
-
 .card:hover {
   transform: translateY(-5px);
   border-color: var(--secondary);
   box-shadow: var(--shadow-lg);
 }
 
-
 .card .icon { font-size: 2.5rem; margin-bottom: 12px; }
 .card .title { font-weight: 800; font-size: 1.1rem; color: var(--primary); margin-bottom: 4px; }
 .card .desc { font-size: 0.85rem; color: var(--text-muted); }
-
 
 /* TOOLBAR (Search + Filter) */
 .toolbar {
@@ -180,7 +268,6 @@ body {
   gap: 15px;
   margin: 2rem 0 1rem;
 }
-
 
 .searchbar {
   flex: 1;
@@ -195,7 +282,6 @@ body {
   box-shadow: var(--shadow);
 }
 
-
 .searchbar input {
   width: 100%;
   border: none;
@@ -204,7 +290,6 @@ body {
   background: transparent;
   color: var(--text-main);
 }
-
 
 .filterbox {
   width: 220px;
@@ -218,7 +303,6 @@ body {
   box-shadow: var(--shadow);
 }
 
-
 .filterbox select {
   width: 100%;
   border: none;
@@ -230,7 +314,6 @@ body {
   background: transparent;
 }
 
-
 /* TABLE SECTION */
 .section-title {
   margin: 30px 0 15px;
@@ -238,7 +321,6 @@ body {
   font-weight: 800;
   color: var(--primary);
 }
-
 
 .table-wrap {
   background: var(--surface);
@@ -248,9 +330,7 @@ body {
   overflow-x: auto;
 }
 
-
 table { width: 100%; border-collapse: collapse; min-width: 700px; }
-
 
 thead th {
   background: #F8FAFC;
@@ -296,9 +376,7 @@ tbody tr:hover { background: #F8FAFC; }
   font-size: 0.85rem;
 }
 
-
 .track-btn:hover { color: var(--primary); text-decoration: underline; }
-
 
 /* PAGINATION */
 .pager {
@@ -321,119 +399,9 @@ tbody tr:hover { background: #F8FAFC; }
   color: var(--text-main);
 }
 
-
 .pg.active { background: var(--primary); color: white; border-color: var(--primary); }
 .pg.disabled { opacity: 0.4; pointer-events: none; }
 .pginfo { font-size: 0.85rem; color: var(--text-muted); margin-left: 12px; font-weight: 600; }
-
-
-/* MODAL & NOTIFICATIONS */
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.5);
-  backdrop-filter: blur(4px);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-
-.modal {
-  width: 100%;
-  max-width: 420px;
-  max-height: 80vh;
-  overflow:auto;
-  background: var(--surface);
-  border-radius:16px;
-  border:2px solid #333;
-  position:relative;
-  box-shadow: var(--shadow-lg);
-  padding: 24px;
-  /* Scroll function need for further enhancement */
-  /* overflow: hidden; */
-  display: flex;
-  flex-direction: column;
-}
-
-
-.modal h3 { margin: 0 0 20px; font-size: 1.25rem; font-weight: 800; color: var(--primary); }
-
-
-.close-x {
-  position: absolute;
-  top: 20px; right: 20px;
-  width: 32px; height: 32px;
-  border-radius: 50%;
-  border: 1px solid var(--border);
-  background: #F8FAFC;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-}
-
-
-/* LOGOUT SPECIFIC STYLES */
-.logout-content { text-align: center; }
-.logout-actions { display: flex; gap: 12px; margin-top: 24px; }
-
-
-.btn-cancel, .btn-confirm {
-  flex: 1;
-  padding: 12px;
-  border-radius: 10px;
-  font-weight: 700;
-  font-size: 0.9rem;
-  cursor: pointer;
-  text-align: center;
-  text-decoration: none;
-}
-
-
-.btn-cancel {
-  background: #F1F5F9;
-  color: var(--text-main);
-  border: 1px solid var(--border);
-}
-
-
-.btn-cancel:hover { background: #E2E8F0; }
-
-
-.btn-confirm {
-  background: #EF4444;
-  color: white;
-  border: none;
-}
-
-
-.btn-confirm:hover { background: #DC2626; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2); }
-
-
-
-
-.notif-item { padding: 15px 0; border-bottom: 1px solid var(--border); }
-.notif-item:last-child { border-bottom: none; }
-.notif-title { font-weight: 700; font-size: 0.9rem; color: var(--text-main); margin-bottom: 4px; }
-.notif-time { font-size: 0.75rem; color: var(--text-muted); }
-
-
-.notif-wrap{ position:relative; display:inline-flex; }
-.notif-badge {
-  position: absolute;
-  top: -4px; right: -4px;
-  background: #EF4444;
-  color: white;
-  font-size: 10px;
-  font-weight: 800;
-  padding:0 5px;
-  min-width: 18px;
-  height: 18px;
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  border: 2px solid var(--surface);
-}
-
 
 .footer-bar {
 height: 120px;
