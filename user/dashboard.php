@@ -174,7 +174,6 @@ function page_url($pageNum, $q, $status){
     <div>E-Doc Document Requesting System</div>
   </div>
   <div class="top-icons">
-
     <span class="notif-wrap">
       <button class="icon-btn" id="notifBtn" title="Notifications" type="button">🔔</button>
       <?php if ($badgeCount > 0): ?>
@@ -183,7 +182,6 @@ function page_url($pageNum, $q, $status){
     </span>
 
     <div class="icon-btn" title="Account"><a href="profile.php">👤</a></div>
-    <!-- <div class="icon-btn" title="Logout"><a href="../auth/logout.php">⎋</a></div> -->
     <button class="icon-btn" title="Logout" id="logoutBtn" style="background:none; border:none; cursor:pointer;">⎋</button>
   </div>
 </header>
