@@ -114,37 +114,37 @@ docSel.addEventListener("change", () => {
   if (!doc) return;
 
   fetch("../api/get_title_types.php?doc=" + encodeURIComponent(doc))
-  .then(res => {
-    if (!res.ok) throw new Error("Network error");
-    return res.json();
-  })
-  .then(rows => {
-    if (!Array.isArray(rows)) return;
+    .then(res => {
+      if (!res.ok) throw new Error("Network error");
+      return res.json();
+    })
+    .then(rows => {
+      if (!Array.isArray(rows)) return;
 
-    rows.forEach(row => {
-      const opt = document.createElement("option");
-      opt.value = row.title_type;
-      opt.textContent = row.title_type;
+      rows.forEach(row => {
+        const opt = document.createElement("option");
+        opt.value = row.title_type;
+        opt.textContent = row.title_type;
 
-      <?php if ($saved_req): ?>
-      if (row.title_type === "<?= addslashes($saved_req['title_type']) ?>") {
-        opt.selected = true;
-      }
-      <?php endif; ?>
+        <?php if ($saved_req): ?>
+        if (row.title_type === "<?= addslashes($saved_req['title_type']) ?>") {
+          opt.selected = true;
+        }
+        <?php endif; ?>
 
-      titleSel.appendChild(opt);
-    });
-  })
-  .catch(() => resetTitle());
+        titleSel.appendChild(opt);
+      });
+    })
+    .catch(() => resetTitle());
 });
 
-// Trigger change event on load if a document type is already selected (for "Previous" button scenario)
 window.addEventListener('DOMContentLoaded', () => {
-    if (docSel.value) {
-        docSel.dispatchEvent(new Event('change'));
-    }
+  if (docSel.value) {
+    docSel.dispatchEvent(new Event('change'));
+  }
 });
 </script>
 
 </body>
 </html>
+
