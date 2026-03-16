@@ -435,11 +435,22 @@ tbody tr:hover { background: #F8FAFC; }
 }
 
 
-/* FOOTER BAR */
 .footer-bar {
-  height: 60px;
-  background: var(--primary);
-  margin-top: 60px;
+height: 120px;
+background: var(--primary);
+margin-top: 60px;
+position: relative;
+overflow: hidden;
+}
+
+.footer-bar .content {
+position: absolute;
+bottom: 20px;
+left: 0;
+right: 0;
+text-align: center;
+color: rgba(255,255,255,0.6);
+font-size: 0.8rem;
 }
 
 
