@@ -30,7 +30,7 @@ if ($res) {
 <head>
   <meta charset="UTF-8" />
   <title>Request Document</title>
-  <link rel="stylesheet" href="../assets/css/upload_requirements.css">
+  <link rel="stylesheet" href="../assets/css/user_request.css">
   <style>
     .banner2{
       background:#fff; border:1px solid #dfe3ea; border-radius:14px;
