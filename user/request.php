@@ -1,4 +1,3 @@
-request.php
 <?php
 session_start();
 require_once "../config/database.php";
@@ -31,26 +30,15 @@ if ($res) {
   <meta charset="UTF-8" />
   <title>Request Document</title>
   <link rel="stylesheet" href="../assets/css/user_request.css">
-  <style>
-    .banner2{
-      background:#fff; border:1px solid #dfe3ea; border-radius:14px;
-      padding:18px; box-shadow:0 8px 18px rgba(0,0,0,.06);
-      margin-top:18px;
-    }
-    .banner2 h1{ margin:0; font-size:22px; }
-    .banner2 p{ margin:6px 0 0; color:#444; font-size:13px; }
-    input[type="text"], input[type="number"]{
-      width:100%; padding:12px; border-radius:10px;
-      border:2px solid #444; background:#f3f3f3; outline:none;
-      font-weight:800;
-    }
-  </style>
 </head>
 <body>
 
 <header class="topbar">
   <div class="brand">
-    <div class="logo">📄</div>
+    <div class="logo">
+      <!-- Optional small logo Waiting for design -->
+      <!-- <img src="assets/img/edoc-logo.jpeg">  -->
+    </div>
     <div>E-Doc Document Requesting System</div>
   </div>
   <div class="top-icons">
@@ -62,7 +50,7 @@ if ($res) {
 
 <main class="container">
 
-  <section class="banner2">
+  <section class="banner">
     <h1>Request Document</h1>
     <p>Start your application by completing all required fields and reviewing your personal information for accuracy.</p>
   </section>
