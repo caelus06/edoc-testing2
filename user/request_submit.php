@@ -9,6 +9,23 @@ if (!isset($_SESSION["user_id"]) || $_SESSION["role"] !== "USER") {
 
 $user_id = (int)$_SESSION["user_id"];
 $req = $_SESSION["req"] ?? null;
+// --- SAVE EDITS ---
+if (isset($_POST['first_name'])) {
+    $upd = $conn->prepare("
+        UPDATE users SET 
+        first_name = ?, middle_name = ?, last_name = ?, suffix = ?, student_id = ?,
+        course = ?, major = ?, year_graduated = ?, gender = ?, email = ?, 
+        contact_number = ?, address = ?
+        WHERE id = ?
+    ");
+    $upd->bind_param(
+        "ssssssssssssi",
+        $_POST['first_name'], $_POST['middle_name'], $_POST['last_name'], $_POST['suffix'], $_POST['student_id'],
+        $_POST['course'], $_POST['major'], $_POST['year_graduated'], $_POST['gender'], $_POST['email'],
+        $_POST['contact_number'], $_POST['address'], $user_id
+    );
+    $upd->execute();
+}
 
 if (!$req) {
   header("Location: request.php");

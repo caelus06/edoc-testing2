@@ -7,6 +7,13 @@ if (!isset($_SESSION["user_id"]) || $_SESSION["role"] !== "USER") {
   exit();
 }
 
+// Logic for handling the EXIT button clearing the session
+if (isset($_GET['clear']) && $_GET['clear'] === '1') {
+    unset($_SESSION["req"]);
+    header("Location: dashboard.php");
+    exit();
+}
+
 $user_id = (int)$_SESSION["user_id"];
 
 // Save step-1 inputs in session
@@ -41,26 +48,22 @@ $stmt = $conn->prepare("
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $u = $stmt->get_result()->fetch_assoc();
-
-$fullName = trim(
-  ($u["first_name"] ?? "") . " " .
-  ($u["middle_name"] ?? "") . " " .
-  ($u["last_name"] ?? "") . " " .
-  ($u["suffix"] ?? "")
-);
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Request Document - Review</title>
-  <link rel="stylesheet" href="../assets/css/request.css">
+  <link rel="stylesheet" href="../assets/css/user_request_review.css">
 </head>
 <body>
 
 <header class="topbar">
   <div class="brand">
-    <div class="logo">📄</div>
+    <div class="logo">
+      <!-- Optional small logo Waiting for design -->
+      <!-- <img src="assets/img/edoc-logo.jpeg" alt="E-Doc Logo"> -->
+    </div>
     <div>E-Doc Document Requesting System</div>
   </div>
   <div class="top-icons">
@@ -77,13 +80,17 @@ $fullName = trim(
   </section>
 
   <section class="panel">
-    <a class="exit-btn" href="dashboard.php">EXIT</a>
+        <!-- Changed link to pass a 'clear' parameter to trigger the session unset logic above -->
+      <a class="exit-btn" href="request.php?clear=1">EXIT</a>
 
     <h2>Review Your Personal Information</h2>
     <p class="sub">Ensure that the details you provide are accurate and consistent with your official academic records.</p>
 
     <div class="info">
-      <p><b>Name:</b> <?= htmlspecialchars($fullName ?: "N/A") ?></p>
+      <p><b>First Name:</b> <?= htmlspecialchars($u["first_name"] ?: "N/A") ?></p>
+      <p><b>Middle Name:</b> <?= htmlspecialchars($u["middle_name"] ?: "N/A") ?></p>
+      <p><b>Last Name:</b> <?= htmlspecialchars($u["last_name"] ?: "N/A") ?></p>
+      <p><b>Suffix:</b> <?= htmlspecialchars($u["suffix"] ?: "N/A") ?></p>
       <p><b>ID Number:</b> <?= htmlspecialchars($u["student_id"] ?: "N/A") ?></p>
       <p><b>Course/Program:</b> <?= htmlspecialchars($u["course"] ?: "N/A") ?></p>
       <p><b>Major:</b> <?= htmlspecialchars($u["major"] ?: "N/A") ?></p>

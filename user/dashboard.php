@@ -161,13 +161,16 @@ function page_url($pageNum, $q, $status){
 <head>
   <meta charset="UTF-8" />
   <title>User Dashboard</title>
-  <link rel="stylesheet" href="../assets/css/dashboard.css">
+  <link rel="stylesheet" href="../assets/css/user_dashboard.css">
 </head>
 <body>
 
 <header class="topbar">
   <div class="brand">
-    <div class="logo">📄</div>
+    <div class="logo">
+      <!-- Optional small logo Waiting for design -->
+      <!-- <img src="assets/img/edoc-logo.jpeg" alt="E-Doc Logo"> -->
+    </div>
     <div>E-Doc Document Requesting System</div>
   </div>
   <div class="top-icons">
