@@ -131,6 +131,7 @@ docSel.addEventListener("change", () => {
     })
     .catch(() => resetTitle());
 });
+
 // Trigger change event on load if a document type is already selected (for "Previous" button scenario)
 window.addEventListener('DOMContentLoaded', () => {
     if (docSel.value) {
