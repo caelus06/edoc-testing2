@@ -54,13 +54,16 @@ $u = $stmt->get_result()->fetch_assoc();
 <head>
   <meta charset="UTF-8" />
   <title>Request Document - Review</title>
-  <link rel="stylesheet" href="../assets/css/request.css">
+  <link rel="stylesheet" href="../assets/css/user_request_review.css">
 </head>
 <body>
 
 <header class="topbar">
   <div class="brand">
-    <div class="logo">📄</div>
+    <div class="logo">
+      <!-- Optional small logo Waiting for design -->
+      <!-- <img src="assets/img/edoc-logo.jpeg" alt="E-Doc Logo"> -->
+    </div>
     <div>E-Doc Document Requesting System</div>
   </div>
   <div class="top-icons">
