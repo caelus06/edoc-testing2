@@ -26,13 +26,14 @@ if (!$user || !password_verify($password, $user["password"])) {
   fail("Invalid email or password.");
 }
 
-// OPTIONAL: block unverified users
-if ($user["role"] === "USER" && $user["verification_status"] !== "VERIFIED") {
-  fail("Account pending verification.");
+// Block users with RESUBMIT or UNAFFILIATED status — only VERIFIED and PENDING can login
+if ($user["role"] === "USER" && !in_array($user["verification_status"], ["VERIFIED", "PENDING"])) {
+  fail("Account not verified. Please contact the MIS office.");
 }
 
 $_SESSION["user_id"] = $user["id"];
 $_SESSION["role"] = $user["role"];
+$_SESSION["verification_status"] = $user["verification_status"];
 
 if ($user["role"] === "REGISTRAR") {
   header("Location: ../registrar/dashboard.php");

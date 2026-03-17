@@ -8,6 +8,19 @@ if (!isset($_SESSION["user_id"]) || $_SESSION["role"] !== "USER") {
 }
 
 $user_id = (int)$_SESSION["user_id"];
+
+// Enforce 1-request limit for pending accounts
+if (($_SESSION["verification_status"] ?? "") === "PENDING") {
+  $limitStmt = $conn->prepare("SELECT COUNT(*) AS total FROM requests WHERE user_id = ?");
+  $limitStmt->bind_param("i", $user_id);
+  $limitStmt->execute();
+  $reqCount = (int)$limitStmt->get_result()->fetch_assoc()["total"];
+  if ($reqCount >= 1) {
+    header("Location: dashboard.php?limit=1");
+    exit();
+  }
+}
+
 $req = $_SESSION["req"] ?? null;
 // --- SAVE EDITS ---
 if (isset($_POST['first_name'])) {
