@@ -549,10 +549,19 @@ tbody tr:hover{
   height: 100%;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
 }
 
 .id-slide.active{
   display: flex;
+}
+
+.slide-label{
+  font-weight: 700;
+  font-size: 12px;
+  color: #5d6e84;
+  margin-bottom: 6px;
+  text-transform: uppercase;
 }
 
 .id-slide img{

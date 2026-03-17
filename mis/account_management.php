@@ -46,54 +46,62 @@ function normalizeStatus($status) {
 ========================= */
 if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["action"] ?? "") === "delete_id_notify") {
   csrf_verify();
-  $user_id = (int)($_POST["user_id"] ?? 0);
-  $file_path = trim($_POST["file_path"] ?? "");
-  $reason = trim($_POST["delete_reason"] ?? "");
+  $user_id  = (int)($_POST["user_id"] ?? 0);
+  $id_type  = trim($_POST["id_type"] ?? "");
+  $reason   = trim($_POST["delete_reason"] ?? "");
 
-  if ($user_id <= 0 || $file_path === "") {
-    $flash = "Missing ID file data.";
+  // Map type to users table column
+  $col_map = [
+    "front" => "id_front_path",
+    "back"  => "id_back_path",
+    "face"  => "face_path",
+  ];
+
+  if ($user_id <= 0 || !isset($col_map[$id_type])) {
+    $flash = "Missing or invalid ID type.";
     $flashType = "error";
   } else {
-    $df = $conn->prepare("
-      SELECT rf.id, rf.request_id, rf.file_path
-      FROM request_files rf
-      INNER JOIN requests r ON r.id = rf.request_id
-      WHERE r.user_id = ?
-        AND rf.file_path = ?
-      LIMIT 1
-    ");
-    $df->bind_param("is", $user_id, $file_path);
-    $df->execute();
-    $delRow = $df->get_result()->fetch_assoc();
+    $col = $col_map[$id_type];
 
-    if (!$delRow) {
-      $flash = "ID file not found.";
+    // Get the current file path
+    $gp = $conn->prepare("SELECT " . $col . " FROM users WHERE id=? LIMIT 1");
+    $gp->bind_param("i", $user_id);
+    $gp->execute();
+    $row = $gp->get_result()->fetch_assoc();
+
+    if (!$row || empty($row[$col])) {
+      $flash = "No ID file found to delete.";
       $flashType = "error";
     } else {
-      $request_id = (int)$delRow["request_id"];
-      $dbFilePath = $delRow["file_path"];
-
-      $absPath = "../" . ltrim($dbFilePath, "/");
+      // Delete file from disk
+      $absPath = "../" . ltrim($row[$col], "/");
       if (file_exists($absPath)) {
         @unlink($absPath);
       }
 
-      $dr = $conn->prepare("DELETE FROM request_files WHERE id=? LIMIT 1");
-      $dr->bind_param("i", $delRow["id"]);
-      $dr->execute();
+      // Clear the column
+      $up = $conn->prepare("UPDATE users SET " . $col . " = NULL, verification_status='RESUBMIT' WHERE id=?");
+      $up->bind_param("i", $user_id);
+      $up->execute();
 
-      $us = $conn->prepare("UPDATE users SET verification_status='RESUBMIT' WHERE id=?");
-      $us->bind_param("i", $user_id);
-      $us->execute();
+      // Log the action if the user has a request
+      $rq = $conn->prepare("SELECT id FROM requests WHERE user_id=? ORDER BY created_at DESC, id DESC LIMIT 1");
+      $rq->bind_param("i", $user_id);
+      $rq->execute();
+      $rqRow = $rq->get_result()->fetch_assoc();
 
-      $message = "VALID ID REMOVED BY MIS. USER MUST RESUBMIT.";
-      if ($reason !== "") {
-        $message .= " REASON: " . $reason;
+      if ($rqRow) {
+        $request_id = (int)$rqRow["id"];
+        $label_map = ["front" => "FRONT ID", "back" => "BACK ID", "face" => "FACE PHOTO"];
+        $label = $label_map[$id_type] ?? strtoupper($id_type);
+        $message = $label . " REMOVED BY MIS. USER MUST RESUBMIT.";
+        if ($reason !== "") {
+          $message .= " REASON: " . $reason;
+        }
+        $lg = $conn->prepare("INSERT INTO request_logs (request_id, message) VALUES (?, ?)");
+        $lg->bind_param("is", $request_id, $message);
+        $lg->execute();
       }
-
-      $lg = $conn->prepare("INSERT INTO request_logs (request_id, message) VALUES (?, ?)");
-      $lg->bind_param("is", $request_id, $message);
-      $lg->execute();
 
       header("Location: account_management.php?edit=" . $user_id . "&msg=deleted");
       exit();
@@ -107,79 +115,86 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["action"] ?? "") === "delet
 if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["action"] ?? "") === "upload_id") {
   csrf_verify();
   $user_id = (int)($_POST["user_id"] ?? 0);
+  $id_type = trim($_POST["id_type"] ?? "");
 
-  if ($user_id <= 0) {
-    $flash = "Invalid user.";
+  $col_map = [
+    "front" => ["id_front_path", "../uploads/ids"],
+    "back"  => ["id_back_path",  "../uploads/ids"],
+    "face"  => ["face_path",     "../uploads/faces"],
+  ];
+
+  if ($user_id <= 0 || !isset($col_map[$id_type])) {
+    $flash = "Invalid user or ID type.";
     $flashType = "error";
   } elseif (!isset($_FILES["id_file"]) || $_FILES["id_file"]["error"] !== UPLOAD_ERR_OK) {
-    $flash = "Please choose an ID image or PDF.";
+    $flash = "Please choose an ID image.";
     $flashType = "error";
   } else {
-    $rq = $conn->prepare("SELECT id FROM requests WHERE user_id=? ORDER BY created_at DESC, id DESC LIMIT 1");
-    $rq->bind_param("i", $user_id);
-    $rq->execute();
-    $rqRow = $rq->get_result()->fetch_assoc();
+    [$col, $dir] = $col_map[$id_type];
 
-    if (!$rqRow) {
-      $flash = "This user has no request yet. Cannot attach ID.";
+    $tmp = $_FILES["id_file"]["tmp_name"];
+    $size = (int)$_FILES["id_file"]["size"];
+
+    if ($size > MAX_FILE_SIZE_BYTES) {
+      $flash = "Max file size is 15MB.";
       $flashType = "error";
     } else {
-      $request_id = (int)$rqRow["id"];
+      $finfo = finfo_open(FILEINFO_MIME_TYPE);
+      $mime = finfo_file($finfo, $tmp);
+      finfo_close($finfo);
 
-      $tmp = $_FILES["id_file"]["tmp_name"];
-      $size = (int)$_FILES["id_file"]["size"];
+      $allowed = [
+        "image/jpeg" => "jpg",
+        "image/png"  => "png",
+        "image/webp" => "webp",
+      ];
 
-      if ($size > 15 * 1024 * 1024) {
-        $flash = "Max file size is 15MB.";
+      if (!isset($allowed[$mime])) {
+        $flash = "Only JPG, PNG, or WEBP allowed.";
         $flashType = "error";
       } else {
-        $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        $mime = finfo_file($finfo, $tmp);
-        finfo_close($finfo);
+        $ext = $allowed[$mime];
+        if (!is_dir($dir)) mkdir($dir, 0755, true);
 
-        $allowed = [
-          "image/jpeg" => "jpg",
-          "image/png" => "png",
-          "image/webp" => "webp",
-          "application/pdf" => "pdf"
-        ];
+        // Delete old file
+        $gp = $conn->prepare("SELECT " . $col . " FROM users WHERE id=? LIMIT 1");
+        $gp->bind_param("i", $user_id);
+        $gp->execute();
+        $oldRow = $gp->get_result()->fetch_assoc();
+        if ($oldRow && !empty($oldRow[$col])) {
+          $oldPath = "../" . ltrim($oldRow[$col], "/");
+          if (file_exists($oldPath)) @unlink($oldPath);
+        }
 
-        if (!isset($allowed[$mime])) {
-          $flash = "Only JPG, PNG, WEBP, or PDF allowed.";
+        $filename = $id_type . "_" . $user_id . "_" . bin2hex(random_bytes(4)) . "." . $ext;
+        $dest = $dir . "/" . $filename;
+
+        if (!move_uploaded_file($tmp, $dest)) {
+          $flash = "Failed to upload file.";
           $flashType = "error";
         } else {
-          $ext = $allowed[$mime];
-          $dir = "../uploads/request_files/" . $request_id;
-          if (!is_dir($dir)) mkdir($dir, 0755, true);
+          $relative = str_replace("../", "", $dest);
 
-          $filename = "valid_id_" . bin2hex(random_bytes(8)) . "." . $ext;
-          $dest = $dir . "/" . $filename;
+          $upUser = $conn->prepare("UPDATE users SET " . $col . " = ?, verification_status='PENDING' WHERE id=?");
+          $upUser->bind_param("si", $relative, $user_id);
+          $upUser->execute();
 
-          if (!move_uploaded_file($tmp, $dest)) {
-            $flash = "Failed to upload file.";
-            $flashType = "error";
-          } else {
-            $relative = str_replace("../", "", $dest);
-
-            $ins = $conn->prepare("
-              INSERT INTO request_files (request_id, requirement_name, file_path, uploaded_at, requirement_key)
-              VALUES (?, 'Valid ID', ?, NOW(), 'valid_id')
-            ");
-            $ins->bind_param("is", $request_id, $relative);
-            $ins->execute();
-
-            $upUser = $conn->prepare("UPDATE users SET verification_status='PENDING' WHERE id=?");
-            $upUser->bind_param("i", $user_id);
-            $upUser->execute();
-
-            $msg = "VALID ID UPLOADED / RE-UPLOADED BY MIS";
+          // Log the action if the user has a request
+          $rq = $conn->prepare("SELECT id FROM requests WHERE user_id=? ORDER BY created_at DESC, id DESC LIMIT 1");
+          $rq->bind_param("i", $user_id);
+          $rq->execute();
+          $rqRow = $rq->get_result()->fetch_assoc();
+          if ($rqRow) {
+            $request_id = (int)$rqRow["id"];
+            $label_map = ["front" => "FRONT ID", "back" => "BACK ID", "face" => "FACE PHOTO"];
+            $msg = ($label_map[$id_type] ?? strtoupper($id_type)) . " UPLOADED / RE-UPLOADED BY MIS";
             $lg = $conn->prepare("INSERT INTO request_logs (request_id, message) VALUES (?, ?)");
             $lg->bind_param("is", $request_id, $msg);
             $lg->execute();
-
-            header("Location: account_management.php?edit=" . $user_id . "&msg=uploaded");
-            exit();
           }
+
+          header("Location: account_management.php?edit=" . $user_id . "&msg=uploaded");
+          exit();
         }
       }
     }
@@ -452,37 +467,19 @@ $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 ========================= */
 $editId = (int)($_GET["edit"] ?? 0);
 $editUser = null;
-$idFiles = [];
 
 if ($editId > 0) {
   $eu = $conn->prepare("
     SELECT id, first_name, middle_name, last_name, suffix,
            student_id, gender, contact_number, year_graduated,
-           course, major, address, email, role, verification_status
+           course, major, address, email, role, verification_status,
+           id_front_path, id_back_path, face_path
     FROM users
     WHERE id=? LIMIT 1
   ");
   $eu->bind_param("i", $editId);
   $eu->execute();
   $editUser = $eu->get_result()->fetch_assoc();
-
-  if ($editUser) {
-    $idf = $conn->prepare("
-      SELECT rf.file_path, rf.uploaded_at
-      FROM request_files rf
-      INNER JOIN requests r ON r.id = rf.request_id
-      WHERE r.user_id = ?
-        AND (
-          LOWER(COALESCE(rf.requirement_key,'')) = 'valid_id'
-          OR LOWER(COALESCE(rf.requirement_name,'')) LIKE '%valid id%'
-        )
-      ORDER BY rf.uploaded_at DESC, rf.id DESC
-      LIMIT 10
-    ");
-    $idf->bind_param("i", $editId);
-    $idf->execute();
-    $idFiles = $idf->get_result()->fetch_all(MYSQLI_ASSOC);
-  }
 }
 
 if (isset($_GET["msg"])) {
@@ -712,56 +709,57 @@ if (isset($_GET["msg"])) {
     <div class="modal-title">Edit User</div>
     <div class="modal-sub">Update user information for <?= h($editUser["email"] ?? "") ?></div>
 
+    <?php
+      // Three ID slides: front, back, face from users table
+      $idSlides = [
+        ["key" => "front", "label" => "Front ID",          "path" => $editUser["id_front_path"] ?? ""],
+        ["key" => "back",  "label" => "Back ID",           "path" => $editUser["id_back_path"] ?? ""],
+        ["key" => "face",  "label" => "Face Verification", "path" => $editUser["face_path"] ?? ""],
+      ];
+      $hasAnyId = !empty($editUser["id_front_path"]) || !empty($editUser["id_back_path"]) || !empty($editUser["face_path"]);
+    ?>
+
     <div class="upload-head">
-      <div class="upload-title">Uploaded ID <span class="upload-count">(<?= count($idFiles) ?>)</span></div>
+      <div class="upload-title">User IDs</div>
       <div class="upload-actions">
         <form method="POST" enctype="multipart/form-data" class="inline-upload-form">
           <?= csrf_field() ?>
           <input type="hidden" name="action" value="upload_id">
           <input type="hidden" name="user_id" value="<?= (int)$editUser['id'] ?>">
-          <input type="file" name="id_file" id="id_file_input" accept=".jpg,.jpeg,.png,.webp,.pdf" style="display:none;" onchange="this.form.submit()">
-          <button type="button" class="soft-btn" onclick="document.getElementById('id_file_input').click()">Upload</button>
+          <input type="hidden" name="id_type" id="upload_id_type" value="front">
+          <input type="file" name="id_file" id="id_file_input" accept=".jpg,.jpeg,.png,.webp" style="display:none;" onchange="this.form.submit()">
+          <button type="button" class="soft-btn" onclick="doMisUpload()">Upload</button>
         </form>
 
-        <?php if (count($idFiles) > 0): ?>
-          <button type="button" class="soft-btn danger" onclick="openDeleteIdModal()">Delete</button>
-        <?php endif; ?>
+        <button type="button" class="soft-btn danger" onclick="openDeleteIdModal()">Delete</button>
       </div>
     </div>
 
     <div class="id-preview-wrap">
-      <button type="button" class="nav-btn" onclick="prevIdSlide()">‹</button>
+      <button type="button" class="nav-btn" onclick="prevIdSlide()">&#8249;</button>
 
-      <div class="id-preview-frame">
-        <?php if (count($idFiles) > 0): ?>
-          <?php foreach ($idFiles as $idx => $file): ?>
-            <?php
-              $path = "../" . ltrim((string)$file["file_path"], "/");
-              $ext = strtolower(pathinfo((string)$file["file_path"], PATHINFO_EXTENSION));
-            ?>
-            <div class="id-slide <?= $idx === 0 ? 'active' : '' ?>" data-file-path="<?= h($file['file_path']) ?>">
-              <?php if (in_array($ext, ["jpg","jpeg","png","webp"])): ?>
-                <img src="<?= h($path) ?>" alt="Uploaded ID">
-              <?php else: ?>
-                <iframe src="<?= h($path) ?>" class="pdf-viewer"></iframe>
-              <?php endif; ?>
-            </div>
-          <?php endforeach; ?>
-        <?php else: ?>
-          <div class="no-id">No uploaded ID found for this user yet.</div>
-        <?php endif; ?>
-      </div>
-
-      <button type="button" class="nav-btn" onclick="nextIdSlide()">›</button>
-    </div>
-
-    <?php if (count($idFiles) > 1): ?>
-      <div class="dots">
-        <?php foreach ($idFiles as $idx => $file): ?>
-          <span class="dot <?= $idx === 0 ? 'active' : '' ?>" onclick="goToIdSlide(<?= $idx ?>)"></span>
+      <div class="id-preview-frame" id="idSlider">
+        <?php foreach ($idSlides as $idx => $slide): ?>
+          <?php $spath = !empty($slide["path"]) ? ("../" . ltrim($slide["path"], "/")) : ""; ?>
+          <div class="id-slide <?= $idx === 0 ? 'active' : '' ?>" data-id-type="<?= $slide['key'] ?>">
+            <div class="slide-label"><?= h($slide["label"]) ?></div>
+            <?php if ($spath): ?>
+              <img src="<?= h($spath) ?>" alt="<?= h($slide['label']) ?>">
+            <?php else: ?>
+              <div class="no-id">No <?= h($slide["label"]) ?> uploaded.</div>
+            <?php endif; ?>
+          </div>
         <?php endforeach; ?>
       </div>
-    <?php endif; ?>
+
+      <button type="button" class="nav-btn" onclick="nextIdSlide()">&#8250;</button>
+    </div>
+
+    <div class="dots" id="idDots">
+      <?php foreach ($idSlides as $idx => $slide): ?>
+        <span class="dot <?= $idx === 0 ? 'active' : '' ?>" onclick="goToIdSlide(<?= $idx ?>)"></span>
+      <?php endforeach; ?>
+    </div>
 
     <form method="POST" class="edit-form">
       <?= csrf_field() ?>
@@ -866,19 +864,19 @@ if (isset($_GET["msg"])) {
 </div>
 <?php endif; ?>
 
-<?php if ($editUser && count($idFiles) > 0): ?>
+<?php if ($editUser): ?>
 <div class="modal-overlay" id="deleteIdModal">
   <div class="modal-card delete-card">
     <button class="modal-close" type="button" onclick="closeDeleteIdModal()">×</button>
 
     <div class="delete-title">Delete ID Image</div>
-    <div class="delete-sub">This will remove the selected ID image and notify the user to resubmit.</div>
+    <div class="delete-sub">This will remove the currently viewed ID image and notify the user to resubmit.</div>
 
     <form method="POST">
       <?= csrf_field() ?>
       <input type="hidden" name="action" value="delete_id_notify">
       <input type="hidden" name="user_id" value="<?= (int)$editUser['id'] ?>">
-      <input type="hidden" name="file_path" id="delete_file_path" value="<?= h($idFiles[0]['file_path'] ?? '') ?>">
+      <input type="hidden" name="id_type" id="delete_id_type" value="front">
 
       <div class="form-row">
         <label>Reason / Notes to User <span class="muted">(optional)</span></label>
@@ -927,7 +925,18 @@ function closeImportModal(){
   document.getElementById('importModal').classList.remove('show');
 }
 
+function doMisUpload(){
+  syncDeleteIdType();
+  const typeInput = document.getElementById('upload_id_type');
+  if (typeInput) {
+    const activeSlide = idSlider ? idSlider.querySelector('.id-slide.active') : null;
+    typeInput.value = activeSlide ? (activeSlide.getAttribute('data-id-type') || 'front') : 'front';
+  }
+  document.getElementById('id_file_input').click();
+}
+
 function openDeleteIdModal(){
+  syncDeleteIdType();
   const modal = document.getElementById('deleteIdModal');
   if (modal) modal.classList.add('show');
 }
@@ -937,16 +946,21 @@ function closeDeleteIdModal(){
   if (modal) modal.classList.remove('show');
 }
 
+/* ── Single combined ID slider ── */
 let currentIdSlide = 0;
-const slides = document.querySelectorAll('.id-slide');
-const dots = document.querySelectorAll('.dot');
+const idSlider = document.getElementById('idSlider');
+const slides = idSlider ? idSlider.querySelectorAll('.id-slide') : [];
+const dotsContainer = document.getElementById('idDots');
+const dots = dotsContainer ? dotsContainer.querySelectorAll('.dot') : [];
 
-function syncDeleteFilePath(){
-  const activeSlide = document.querySelector('.id-slide.active');
-  const hiddenInput = document.getElementById('delete_file_path');
-  if (!activeSlide || !hiddenInput) return;
-  const path = activeSlide.getAttribute('data-file-path');
-  if (path) hiddenInput.value = path;
+function syncDeleteIdType(){
+  if (!idSlider) return;
+  const hiddenInput = document.getElementById('delete_id_type');
+  if (!hiddenInput) return;
+  const activeSlide = idSlider.querySelector('.id-slide.active');
+  if (activeSlide) {
+    hiddenInput.value = activeSlide.getAttribute('data-id-type') || 'front';
+  }
 }
 
 function showIdSlide(index){
@@ -963,7 +977,7 @@ function showIdSlide(index){
     dot.classList.toggle('active', i === index);
   });
 
-  syncDeleteFilePath();
+  syncDeleteIdType();
 }
 
 function nextIdSlide(){
@@ -978,7 +992,7 @@ function goToIdSlide(index){
   showIdSlide(index);
 }
 
-syncDeleteFilePath();
+syncDeleteIdType();
 
 setTimeout(() => {
   const toast = document.getElementById('toastMessage');

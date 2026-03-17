@@ -21,15 +21,38 @@ if (!$u) {
   die("User not found.");
 }
 
-// $fullName = trim($u["first_name"] . " " . ($u["middle_name"] ?? "") . " " . $u["last_name"]);
+// Image paths (empty string if missing)
+$frontImg = !empty($u["id_front_path"]) ? "../" . $u["id_front_path"] : "";
+$faceImg  = !empty($u["face_path"])     ? "../" . $u["face_path"]     : "";
+$backImg  = !empty($u["id_back_path"])  ? "../" . $u["id_back_path"]  : "";
 
-// Image fallbacks (if missing)
-$frontImg = !empty($u["id_front_path"]) ? "../" . $u["id_front_path"] : "https://via.placeholder.com/900x500?text=No+Front+ID";
-$faceImg  = !empty($u["face_path"])     ? "../" . $u["face_path"]     : "https://via.placeholder.com/900x500?text=No+Face+Photo";
-$backImg  = !empty($u["id_back_path"])  ? "../" . $u["id_back_path"]  : "https://via.placeholder.com/900x500?text=No+Back+ID";
+$status    = strtoupper($u["verification_status"] ?? "PENDING");
+$badgeText = ($status === "VERIFIED") ? "VERIFIED" : (($status === "RESUBMIT") ? "RESUBMIT" : "PENDING");
 
-$status = strtoupper($u["verification_status"] ?? "PENDING");
-$badgeText = ($status === "VERIFIED") ? "✓ VERIFIED" : (($status === "REJECTED") ? "✗ REJECTED" : "⏳ PENDING");
+// Flash messages from redirects
+$flashMsg  = "";
+$flashType = "";
+if (isset($_GET["msg"])) {
+  $flashType = "success";
+  if ($_GET["msg"] === "uploaded") $flashMsg = "File uploaded successfully.";
+  if ($_GET["msg"] === "deleted")  $flashMsg = "File deleted successfully.";
+}
+if (isset($_GET["saved"])) {
+  $flashMsg  = "Profile saved successfully.";
+  $flashType = "success";
+}
+if (isset($_GET["error"])) {
+  $flashType = "error";
+  switch ($_GET["error"]) {
+    case "upload":     $flashMsg = "File upload failed. Please try again."; break;
+    case "size":       $flashMsg = "File is too large. Maximum size is 15 MB."; break;
+    case "filetype":   $flashMsg = "Invalid file type. Only JPG, PNG, and WEBP are accepted."; break;
+    case "move":       $flashMsg = "Server error moving file. Please try again."; break;
+    default:           $flashMsg = "An error occurred."; break;
+  }
+}
+
+$initialStep = max(0, min(2, (int)($_GET["step"] ?? 0)));
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -40,9 +63,13 @@ $badgeText = ($status === "VERIFIED") ? "✓ VERIFIED" : (($status === "REJECTED
 </head>
 <body>
 
+<?php if ($flashMsg): ?>
+  <div class="flash-msg flash-<?= $flashType ?>"><?= h($flashMsg) ?></div>
+<?php endif; ?>
+
 <div class="wrapper">
   <div class="card">
-    <button class="close-x" onclick="window.location.href='dashboard.php'">×</button>
+    <button class="close-x" onclick="window.location.href='dashboard.php'">&times;</button>
 
     <div class="grid">
 
@@ -54,15 +81,32 @@ $badgeText = ($status === "VERIFIED") ? "✓ VERIFIED" : (($status === "REJECTED
           <img id="previewImg"
                src=""
                alt="Preview"
-               data-front="<?= htmlspecialchars($frontImg) ?>"
-               data-face="<?= htmlspecialchars($faceImg) ?>"
-               data-back="<?= htmlspecialchars($backImg) ?>">
+               data-front="<?= h($frontImg) ?>"
+               data-back="<?= h($backImg) ?>"
+               data-face="<?= h($faceImg) ?>">
         </div>
+
+        <!-- Upload form (file input hidden, triggered by button) -->
+        <form id="uploadForm" method="POST" action="profile_id_action.php" enctype="multipart/form-data">
+          <?= csrf_field() ?>
+          <input type="hidden" name="action" value="upload">
+          <input type="hidden" name="type" id="uploadType" value="">
+          <input type="file" name="id_file" id="fileInput" accept="image/jpeg,image/png,image/webp"
+                 style="display:none;" onchange="this.form.submit()">
+        </form>
+
+        <!-- Delete form -->
+        <form id="deleteForm" method="POST" action="profile_id_action.php" style="display:none">
+          <?= csrf_field() ?>
+          <input type="hidden" name="action" value="delete">
+          <input type="hidden" name="type" id="deleteType" value="">
+          <input type="hidden" name="file_id" id="deleteFileId" value="">
+        </form>
 
         <div class="left-actions">
           <button class="nav-arrow" type="button" onclick="prevStep()">&lt;</button>
-          <button class="btn delete" type="button">DELETE</button>
-          <button class="btn upload" type="button">UPLOAD</button>
+          <button class="btn delete" type="button" onclick="doDelete()">DELETE</button>
+          <button class="btn upload" type="button" onclick="doUpload()">UPLOAD</button>
           <button class="nav-arrow" type="button" onclick="nextStep()">&gt;</button>
         </div>
       </div>
@@ -95,14 +139,14 @@ $badgeText = ($status === "VERIFIED") ? "✓ VERIFIED" : (($status === "REJECTED
                     </div>
 
                     <button class="edit-btn" type="button" onclick="enableEdit(\''.$key.'\')">
-                      <span>✎</span> EDIT
+                      <span>&#9998;</span> EDIT
                     </button>
                   </div>
                 ';
               }
               row("first_name", "First Name", $u["first_name"]);
               row("middle_name", "Middle Name", $u["middle_name"]);
-              row("last_name", "Last Name", $u["last_name"]);              
+              row("last_name", "Last Name", $u["last_name"]);
               row("suffix", "Suffix", $u["suffix"] ?: "N/A");
               row("student_id", "ID Number", $u["student_id"] ?: "N/A");
               row("course", "Course/Program", $u["course"] ?: "N/A");
@@ -116,7 +160,7 @@ $badgeText = ($status === "VERIFIED") ? "✓ VERIFIED" : (($status === "REJECTED
 
             <div class="status-row">
               <div>Account Status:</div>
-              <div class="badge"><?= htmlspecialchars($badgeText) ?></div>
+              <div class="badge badge-<?= strtolower($status) ?>"><?= h($badgeText) ?></div>
             </div>
 
             <div class="bottom-actions">
@@ -132,6 +176,91 @@ $badgeText = ($status === "VERIFIED") ? "✓ VERIFIED" : (($status === "REJECTED
   </div>
 </div>
 
-<script src="../assets/js/profile.js"></script>
+<script>
+var step = <?= $initialStep ?>;
+
+var steps = [
+  { key: "front", title: "FRONT ID" },
+  { key: "back",  title: "BACK ID" },
+  { key: "face",  title: "FACE VERIFICATION" }
+];
+
+function getImgSrc() {
+  var img = document.getElementById("previewImg");
+  return img.dataset[steps[step].key] || "";
+}
+
+function renderStep() {
+  var title = document.getElementById("leftTitle");
+  var img   = document.getElementById("previewImg");
+  var src   = getImgSrc();
+
+  title.textContent = steps[step].title;
+
+  if (src) {
+    img.src = src;
+    img.style.display = "";
+  } else {
+    img.src = "";
+    img.style.display = "none";
+  }
+}
+
+function nextStep() {
+  if (step < steps.length - 1) step++;
+  renderStep();
+}
+
+function prevStep() {
+  if (step > 0) step--;
+  renderStep();
+}
+
+function doUpload() {
+  var type = steps[step].key;
+  document.getElementById("uploadType").value = type;
+
+  var fi = document.getElementById("fileInput");
+  fi.accept = "image/jpeg,image/png,image/webp";
+  fi.value = "";
+  fi.click();
+}
+
+function doDelete() {
+  var type = steps[step].key;
+  var src  = getImgSrc();
+
+  if (!src) {
+    alert("No image to delete.");
+    return;
+  }
+
+  if (!confirm("Are you sure you want to delete this " + steps[step].title + "?")) {
+    return;
+  }
+
+  document.getElementById("deleteType").value = type;
+  document.getElementById("deleteForm").submit();
+}
+
+function enableEdit(field) {
+  var textEl  = document.getElementById(field + "_text");
+  var inputEl = document.getElementById(field + "_input");
+  if (!textEl || !inputEl) return;
+
+  textEl.classList.add("hidden");
+  inputEl.classList.remove("hidden");
+  inputEl.focus();
+}
+
+renderStep();
+
+// auto-dismiss flash
+var flash = document.querySelector(".flash-msg");
+if (flash) {
+  setTimeout(function() { flash.style.opacity = "0"; }, 3000);
+  setTimeout(function() { flash.remove(); }, 3500);
+}
+</script>
 </body>
 </html>
