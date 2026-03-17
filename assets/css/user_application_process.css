@@ -29,6 +29,7 @@ body {
   background: var(--bg-color);
   color: var(--text-main);
   line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* TOPBAR */
@@ -53,6 +54,8 @@ body {
   color: var(--primary);
 }
 
+.brand .logo { font-size: 24px; }
+
 .top-icons { display: flex; gap: 12px; align-items: center; }
 
 .icon-btn {
@@ -61,6 +64,7 @@ body {
   cursor: pointer; display: flex; align-items: center; justify-content: center;
   font-size: 18px; color: var(--text-main);
   position: relative;
+  padding: 0;
 }
 
 .icon-btn:hover { background: #F1F5F9; border-color: var(--secondary); color: var(--secondary); }
@@ -82,7 +86,7 @@ body {
 .modal {
   width: 100%;
   max-width: 420px;
-  max-height: 80vh;
+  max-height: 85vh;
   overflow-y: auto;
   background: var(--surface);
   border-radius: 16px;
@@ -92,6 +96,12 @@ body {
   padding: 24px;
   display: flex;
   flex-direction: column;
+  animation: modalSlide 0.3s ease-out;
+}
+
+@keyframes modalSlide {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 .modal h3 { margin: 0 0 20px; font-size: 1.25rem; font-weight: 800; color: var(--primary); }
@@ -109,9 +119,13 @@ body {
   color: var(--text-muted);
 }
 
+.close-x:hover { background: #F1F5F9; color: var(--text-main); }
+
 /* LOGOUT STYLES */
 .logout-content { text-align: center; }
-.logout-actions { display: flex; gap: 12px; margin-top: 24px; }
+.logout-content h3 { margin-bottom: 8px; color: var(--text-main); }
+.logout-content p { color: var(--text-muted); margin-bottom: 24px; font-size: 0.95rem; }
+.logout-actions { display: flex; gap: 12px; margin-top: 10px; }
 
 .btn-cancel, .btn-confirm {
   flex: 1; padding: 12px; border-radius: 10px;
@@ -123,6 +137,7 @@ body {
 .btn-confirm { background: #EF4444; color: white; }
 .btn-confirm:hover { background: #DC2626; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2); }
 
+/* NOTIFICATION ITEMS */
 .notif-item { padding: 15px 0; border-bottom: 1px solid var(--border); }
 .notif-item:last-child { border-bottom: none; }
 .notif-title { font-weight: 700; font-size: 0.9rem; color: var(--text-main); margin-bottom: 4px; }
@@ -135,6 +150,7 @@ body {
   padding: 0 5px; min-width: 18px; height: 18px; border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
   border: 2px solid var(--surface);
+  z-index: 10;
 }
 
 /* CONTAINER */
@@ -177,24 +193,14 @@ body {
   font-size: 0.75rem;
   border: 1px solid var(--border);
   text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .exit-btn:hover { background: #FEF2F2; color: #EF4444; border-color: #FCA5A5; }
 
 /* NOTE BOX */
-.note {
-  background: #FFFBEB;
-  border: 1px solid #FEF3C7;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 30px;
-  color: #92400E;
-  font-size: 0.9rem;
-  line-height: 1.6;
-}
-
-.note b { color: #78350F; display: block; margin-bottom: 4px; }
-.pin { margin-right: 8px; font-size: 1.2rem; vertical-align: middle; }
+.note b { font-size: 1.4rem; font-weight: 800; color: var(--primary); margin: 0 0 6px; }
+.pin { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 30px; border-bottom: 1px solid #F1F5F9; padding-bottom: 15px; }
 
 /* FORM ELEMENTS */
 .label {
@@ -253,6 +259,7 @@ select:focus {
   gap: 12px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn.next {
@@ -267,23 +274,27 @@ select:focus {
   box-shadow: 0 8px 20px rgba(0, 38, 153, 0.25);
 }
 
+.btn.next:active { transform: translateY(0); }
+
 /* RESPONSIVE DESIGN */
 @media (max-width: 768px) {
-  .container { margin-top: 1rem; }
+  .container { margin-top: 1rem; padding: 0 15px; }
   .panel { padding: 30px 20px; }
   .exit-btn { 
     position: static; 
     display: block; 
     text-align: center;
     margin-bottom: 25px; 
-    width: fit-content;
+    width: 100%;
   }
-  .actions { justify-content: stretch; }
+  .actions { justify-content: stretch; padding-top: 20px; }
   .btn { width: 100%; }
+  .banner { padding: 25px 20px; }
+  .banner h1 { font-size: 1.5rem; }
 }
 
 @media (max-width: 600px) {
   .topbar { padding: 0.75rem 1rem; }
   .brand div:last-child { display: none; }
-  .banner h1 { font-size: 1.5rem; }
+  .modal { width: 95%; padding: 20px; }
 }

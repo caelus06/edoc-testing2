@@ -149,12 +149,15 @@ if ($badgeCount > 99) $badgeCount = 99;
   <section class="panel">
     <a class="exit-btn" href="dashboard.php">EXIT</a>
 
-    <div class="h2">Read Carefully Before Uploading Requirement</div>
-    <ul style="margin-top:8px; font-size:12px;">
-      <li>Submit each requirement as a separate file.</li>
-      <li>Upload all documents as clear, colored, and properly scanned copies.</li>
-      <li>Ensure pages are arranged correctly before uploading.</li>
-    </ul>
+    <div class="h2">Important Instructions</div>
+    <div class="note" style="margin-top: 15px;">
+        <ul style="margin: 0; padding-left: 18px; font-size: 13px;">
+          <li>Files must be in <b>PDF format</b> only.</li>
+          <li>Each requirement must be uploaded as a <b>separate file</b>.</li>
+          <li>Maximum file size per document is <b>15MB</b>.</li>
+          <li>Ensure all scans are <b>clear and readable</b>.</li>
+        </ul>
+    </div>
 
     <div class="status-block">
       <div class="h2" style="margin-top:14px;">Document Request Status</div>
