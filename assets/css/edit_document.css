@@ -306,10 +306,10 @@ body {
 
 /* ── FIXED BOTTOM BAR ── */
 .bottom-bar {
-  position: fixed; bottom: 0; left: 220px; right: 0;
+  position: center; bottom: 0; left: auto; right: auto;
   background: var(--white); border-top: 1px solid #ccc;
   padding: 10px 24px;
-  display: flex; align-items: center; justify-content: flex-end; gap: 10px;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
   box-shadow: 0 -2px 6px rgba(0,0,0,.07); z-index: 500;
 }
 .btn-save-changes {

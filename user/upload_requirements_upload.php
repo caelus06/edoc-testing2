@@ -149,7 +149,7 @@ if ($badgeCount > 99) $badgeCount = 99;
   <section class="panel">
     <a class="exit-btn" href="dashboard.php">EXIT</a>
 
-    <div class="h2">IMPORTANT: Read Carefully Before Uploading Requirement</div>
+    <div class="h2">Read Carefully Before Uploading Requirement</div>
     <ul style="margin-top:8px; font-size:12px;">
       <li>Submit each requirement as a separate file.</li>
       <li>Upload all documents as clear, colored, and properly scanned copies.</li>
