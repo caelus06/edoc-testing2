@@ -266,7 +266,6 @@ if ($detailId > 0) {
 <head>
   <meta charset="UTF-8" />
   <title>Track Progress</title>
-
   <!-- same layout look -->
   <link rel="stylesheet" href="../assets/css/registrar_request_management.css">
   <!-- page-specific -->

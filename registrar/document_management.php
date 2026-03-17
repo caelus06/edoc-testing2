@@ -264,6 +264,7 @@ $documents = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     </div>
   </div>
 
+  <div class="footer-bar"></div>
 
   <script>
     function openModal(action, id = '', name = '', processing_time = '') {

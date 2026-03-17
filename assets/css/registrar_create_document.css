@@ -204,4 +204,4 @@ tbody tr:hover{ background:#fafafa; }
   text-decoration:none; display:inline-flex; align-items:center; justify-content:center;
 }
 
-.footer-bar{ height:70px; background:#062a44; margin-top:18px; }
+.footer-bar{ height:70px; background:#062a44; margin-top:auto; }

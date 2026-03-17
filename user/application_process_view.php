@@ -53,13 +53,49 @@ $reqStmt = $conn->prepare(
      AND req_name != '__placeholder__'
    ORDER BY id ASC"
 );
+
+$user_id = (int)$_SESSION["user_id"];
+
+/* ---------- Notifications list (modal content) ---------- */
+$notifStmt = $conn->prepare("
+  SELECT rl.message, rl.created_at
+  FROM request_logs rl
+  INNER JOIN requests r ON r.id = rl.request_id
+  WHERE r.user_id = ?
+  ORDER BY rl.created_at DESC
+  LIMIT 30
+");
+$notifStmt->bind_param("i", $user_id);
+$notifStmt->execute();
+$notifs = $notifStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+/* ---------- Get last seen timestamp ---------- */
+$seenStmt = $conn->prepare("SELECT last_seen_at FROM user_notif_seen WHERE user_id = ? LIMIT 1");
+$seenStmt->bind_param("i", $user_id);
+$seenStmt->execute();
+$seenRow = $seenStmt->get_result()->fetch_assoc();
+$lastSeenAt = $seenRow["last_seen_at"] ?? "2000-01-01 00:00:00";
+
+/* ---------- Unread badge count = logs newer than last_seen_at ---------- */
+$badgeStmt = $conn->prepare("
+  SELECT COUNT(*) AS c
+  FROM request_logs rl
+  INNER JOIN requests r ON r.id = rl.request_id
+  WHERE r.user_id = ?
+    AND rl.created_at > ?
+");
+$badgeStmt->bind_param("is", $user_id, $lastSeenAt);
+$badgeStmt->execute();
+$badgeCount = (int)($badgeStmt->get_result()->fetch_assoc()["c"] ?? 0);
+if ($badgeCount > 99) $badgeCount = 99;
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Application Process</title>
-  <link rel="stylesheet" href="../assets/css/upload_requirements.css">
+  <link rel="stylesheet" href="../assets/css/user_application_process_view.css">
   <style>
     .return-btn{ margin-top:14px; display:inline-block; padding:10px 18px;
       background:#0b3a5a; color:#fff; border-radius:8px; text-decoration:none; font-weight:900; font-size:12px;}
@@ -81,9 +117,15 @@ $reqStmt = $conn->prepare(
     <div>E-Doc Document Requesting System</div>
   </div>
   <div class="top-icons">
-    <button class="icon-btn" type="button">🔔</button>
-    <div class="icon-btn"><a href="profile.php">👤</a></div>
-    <div class="icon-btn"><a href="../auth/logout.php">⎋</a></div>
+    <span class="notif-wrap">
+      <button class="icon-btn" id="notifBtn" title="Notifications" type="button">🔔</button>
+      <?php if ($badgeCount > 0): ?>
+        <span class="notif-badge" id="notifBadge"><?= (int)$badgeCount ?></span>
+      <?php endif; ?>
+    </span>
+
+    <div class="icon-btn" title="Account"><a href="profile.php">👤</a></div>
+    <button class="icon-btn" title="Logout" id="logoutBtn";">⎋</button>
   </div>
 </header>
 
@@ -109,38 +151,47 @@ $reqStmt = $conn->prepare(
       </div>
 
       <?php if (count($titleTypes) === 0): ?>
-        <p>(No requirements configured.)</p>
-      <?php else: ?>
-        <?php foreach ($titleTypes as $tt): ?>
-          <?php
+    <p>(No requirements configured.)</p>
+<?php else: ?>
+    <?php foreach ($titleTypes as $tt): ?>
+        <?php
             $title = $tt["title_type"];
             $reqStmt->bind_param("ss", $document_type, $title);
             $reqStmt->execute();
             $reqs = $reqStmt->get_result()->fetch_all(MYSQLI_ASSOC);
-            // Skip title groups that only had placeholder rows
-            if (empty($reqs)) continue;
-          ?>
-          <h3><?= htmlspecialchars($title) ?></h3>
-          <ul>
-            <?php foreach ($reqs as $r): ?>
-              <li><?= htmlspecialchars($r["req_name"]) ?></li>
-            <?php endforeach; ?>
-          </ul>
-        <?php endforeach; ?>
-      <?php endif; ?>
 
-      <!-- ── Reminders ── -->
-      <?php if (!empty($reminders)): ?>
-        <h3>Reminders</h3>
-        <?php foreach ($reminders as $rem): ?>
-          <div class="reminder-block">
-            <?php if (!empty($rem["title_type"])): ?>
-              <div class="reminder-title"><?= htmlspecialchars($rem["title_type"]) ?></div>
+            if (empty($reqs)) continue;
+            
+            // Start numbering for this section (or use a global counter if preferred)
+            $counter = 1; 
+        ?>
+        
+        <h3 style="margin-bottom: 5px;"><?= htmlspecialchars($title) ?></h3>
+        
+        <div style="margin-left: 20px; margin-bottom: 20px;">
+            <?php foreach ($reqs as $r): ?>
+                <div class="req-item" style="margin-bottom: 4px;">
+                    <?= $counter++ ?>. &nbsp; <?= htmlspecialchars($r["req_name"]) ?>
+                </div>
+            <?php endforeach; ?>
+
+            <?php if (!empty($reminders)): ?>
+                <?php foreach ($reminders as $rem): ?>
+                    <?php 
+                        // Only show if the reminder's title_type matches the current section title
+                        if (trim($rem["title_type"]) === trim($title)): 
+                    ?>
+                        <div class="reminder-block" style="margin-top: 5px; margin-left: 15px;">
+                            <strong>Reminder Details:</strong> 
+                            <em><?= htmlspecialchars($rem["details"]) ?></em>
+                        </div>
+                    <?php endif; ?>
+                <?php endforeach; ?>
             <?php endif; ?>
-            <div class="reminder-detail"><?= htmlspecialchars($rem["details"]) ?></div>
-          </div>
-        <?php endforeach; ?>
-      <?php endif; ?>
+        </div>
+
+    <?php endforeach; ?>
+<?php endif; ?>
 
       <!-- ── Application Process ── -->
       <?php if (!empty($appProcessItems)): ?>
@@ -154,6 +205,102 @@ $reqStmt = $conn->prepare(
     </div>
   </section>
 </main>
+
+
+<!-- NOTIFICATION MODAL -->
+<div class="modal-backdrop" id="notifBackdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="notifTitle">
+    <button class="close-x" id="notifClose" type="button">×</button>
+    <h3 id="notifTitle">NOTIFICATION</h3>
+
+    <?php if (empty($notifs)): ?>
+      <div class="notif-item">
+        <div class="notif-title">No notifications yet</div>
+        <div class="notif-time">—</div>
+      </div>
+    <?php else: ?>
+      <?php foreach ($notifs as $n): ?>
+        <div class="notif-item">
+          <div class="notif-title"><?= htmlspecialchars($n["message"]) ?></div>
+          <div class="notif-time">
+            <?= $n["created_at"] ? date("m/d/y, g:i A", strtotime($n["created_at"])) : "" ?>
+          </div>
+        </div>
+      <?php endforeach; ?>
+    <?php endif; ?>
+
+  </div>
+</div>
+
+<!-- LOGOUT CONFIRMATION MODAL -->
+<div class="modal-backdrop" id="logoutBackdrop">
+  <div class="modal" role="dialog" aria-modal="true" style="max-width: 400px;">
+    <div class="logout-content">
+      <h3>Are you sure you want to log out?</h3>
+      <p>You will need to sign in again to access your account.</p>
+    <div class="logout-actions">
+      <button class="btn-cancel" id="logoutCancel">Cancel</button>
+      <a href="../auth/logout.php" class="btn-confirm">Log Out</a>
+    </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const notifBtn = document.getElementById("notifBtn");
+  const backdrop = document.getElementById("notifBackdrop");
+  const closeBtn = document.getElementById("notifClose");
+  const badge = document.getElementById("notifBadge");
+
+  async function markSeen(){
+    try{
+      await fetch("notif_seen.php", { method: "POST" });
+      if (badge) badge.style.display = "none";
+    }catch(e){}
+  }
+
+  function openNotif(){
+    backdrop.style.display = "flex";
+    markSeen(); // ✅ reset unread count when opened
+  }
+
+  function closeNotif(){
+    backdrop.style.display = "none";
+  }
+
+  notifBtn?.addEventListener("click", openNotif);
+  closeBtn?.addEventListener("click", closeNotif);
+
+  backdrop?.addEventListener("click", (e) => {
+    if (e.target === backdrop) closeNotif();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeNotif();
+  });
+
+  // Logout Logic
+  const logoutBtn = document.getElementById("logoutBtn");
+  const logoutBackdrop = document.getElementById("logoutBackdrop");
+  const logoutCancel = document.getElementById("logoutCancel");
+
+  logoutBtn?.addEventListener("click", () => logoutBackdrop.style.display = "flex");
+  logoutCancel?.addEventListener("click", () => logoutBackdrop.style.display = "none");
+
+  // General Modal Logic
+  window.addEventListener("click", (e) => {
+    if (e.target === notifBackdrop) notifBackdrop.style.display = "none";
+    if (e.target === logoutBackdrop) logoutBackdrop.style.display = "none";
+  });
+
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      notifBackdrop.style.display = "none";
+      logoutBackdrop.style.display = "none";
+    }
+  });
+</script>
+
 
 </body>
 </html>

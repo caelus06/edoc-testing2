@@ -154,11 +154,11 @@ $uiCSS = "
 
 <header class="topbar">
   <div class="brand">
-    <div class="logo">📄</div>
+      <!-- Optional small logo Waiting for design -->
+      <!-- <img src="assets/img/edoc-logo.jpeg">  -->
     <div>E-Doc Document Requesting System</div>
   </div>
   <div class="top-icons">
-    <button class="icon-btn" type="button" onclick="history.back()" title="Back">←</button>
     <div class="icon-btn" title="Home"><a href="dashboard.php">🏠</a></div>
     <div class="icon-btn" title="Logout"><a href="../auth/logout.php">⎋</a></div>
   </div>
