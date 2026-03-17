@@ -136,6 +136,8 @@ if ($badgeCount > 99) $badgeCount = 99;
   </section>
 
   <section class="panel">
+    <a class="exit-btn" href="dashboard.php">EXIT</a>
+    
     <div class="note">
       <span class="pin">📌</span><b>Please note: Read carefully the requirement</b><br>
       Digital uploads are required for verification, but all official requirements must be submitted once verified and approved to the Registrar's Office
