@@ -1,14 +1,7 @@
 <?php
 // registrar/track_progress.php
-session_start();
-require_once "../config/database.php";
-
-if (!isset($_SESSION["user_id"]) || ($_SESSION["role"] ?? "") !== "REGISTRAR") {
-  header("Location: ../auth/auth.php");
-  exit();
-}
-
-function h($s){ return htmlspecialchars((string)($s ?? ""), ENT_QUOTES, "UTF-8"); }
+require_once __DIR__ . "/../includes/helpers.php";
+require_role(ROLE_REGISTRAR);
 
 $registrarId = (int)$_SESSION["user_id"];
 

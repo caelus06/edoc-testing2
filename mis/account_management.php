@@ -1,15 +1,6 @@
 <?php
-session_start();
-require_once "../config/database.php";
-
-if (!isset($_SESSION["user_id"]) || ($_SESSION["role"] ?? "") !== "MIS") {
-  header("Location: ../auth/auth.php");
-  exit();
-}
-
-function h($s){
-  return htmlspecialchars((string)($s ?? ""), ENT_QUOTES, "UTF-8");
-}
+require_once __DIR__ . "/../includes/helpers.php";
+require_role(ROLE_MIS);
 
 $misId = (int)$_SESSION["user_id"];
 
@@ -54,6 +45,7 @@ function normalizeStatus($status) {
    HANDLE DELETE ID + NOTIFY USER
 ========================= */
 if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["action"] ?? "") === "delete_id_notify") {
+  csrf_verify();
   $user_id = (int)($_POST["user_id"] ?? 0);
   $file_path = trim($_POST["file_path"] ?? "");
   $reason = trim($_POST["delete_reason"] ?? "");
@@ -113,6 +105,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["action"] ?? "") === "delet
    HANDLE ID UPLOAD
 ========================= */
 if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["action"] ?? "") === "upload_id") {
+  csrf_verify();
   $user_id = (int)($_POST["user_id"] ?? 0);
 
   if ($user_id <= 0) {
@@ -197,6 +190,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["action"] ?? "") === "uploa
    HANDLE SAVE USER
 ========================= */
 if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["action"] ?? "") === "save_user") {
+  csrf_verify();
   $user_id = (int)($_POST["user_id"] ?? 0);
 
   $first_name      = trim($_POST["first_name"] ?? "");
@@ -264,6 +258,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["action"] ?? "") === "save_
    HANDLE BULK IMPORT (CSV ONLY)
 ========================= */
 if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["action"] ?? "") === "import_accounts") {
+  csrf_verify();
   if (!isset($_FILES["bulk_file"]) || $_FILES["bulk_file"]["error"] !== UPLOAD_ERR_OK) {
     $flash = "Please upload a CSV file.";
     $flashType = "error";
@@ -685,6 +680,7 @@ if (isset($_GET["msg"])) {
     </div>
 
     <form method="POST" enctype="multipart/form-data" class="import-form">
+      <?= csrf_field() ?>
       <input type="hidden" name="action" value="import_accounts">
 
       <div class="import-box">
@@ -720,6 +716,7 @@ if (isset($_GET["msg"])) {
       <div class="upload-title">Uploaded ID <span class="upload-count">(<?= count($idFiles) ?>)</span></div>
       <div class="upload-actions">
         <form method="POST" enctype="multipart/form-data" class="inline-upload-form">
+          <?= csrf_field() ?>
           <input type="hidden" name="action" value="upload_id">
           <input type="hidden" name="user_id" value="<?= (int)$editUser['id'] ?>">
           <input type="file" name="id_file" id="id_file_input" accept=".jpg,.jpeg,.png,.webp,.pdf" style="display:none;" onchange="this.form.submit()">
@@ -767,6 +764,7 @@ if (isset($_GET["msg"])) {
     <?php endif; ?>
 
     <form method="POST" class="edit-form">
+      <?= csrf_field() ?>
       <input type="hidden" name="action" value="save_user">
       <input type="hidden" name="user_id" value="<?= (int)$editUser["id"] ?>">
 
@@ -877,6 +875,7 @@ if (isset($_GET["msg"])) {
     <div class="delete-sub">This will remove the selected ID image and notify the user to resubmit.</div>
 
     <form method="POST">
+      <?= csrf_field() ?>
       <input type="hidden" name="action" value="delete_id_notify">
       <input type="hidden" name="user_id" value="<?= (int)$editUser['id'] ?>">
       <input type="hidden" name="file_path" id="delete_file_path" value="<?= h($idFiles[0]['file_path'] ?? '') ?>">

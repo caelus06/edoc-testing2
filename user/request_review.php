@@ -1,11 +1,6 @@
 <?php
-session_start();
-require_once "../config/database.php";
-
-if (!isset($_SESSION["user_id"]) || $_SESSION["role"] !== "USER") {
-  header("Location: ../auth/auth.php");
-  exit();
-}
+require_once __DIR__ . "/../includes/helpers.php";
+require_role(ROLE_USER);
 
 $user_id = (int)$_SESSION["user_id"];
 
@@ -20,6 +15,7 @@ $user_id = (int)$_SESSION["user_id"];
 
 // Save step-1 inputs in session
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
+  csrf_verify();
   $_SESSION["req"] = [
     "document_type" => trim($_POST["document_type"] ?? ""),
     "title_type"    => trim($_POST["title_type"] ?? ""),
@@ -156,6 +152,7 @@ if ($badgeCount > 99) $badgeCount = 99;
       <a class="btn prev" href="request.php" style="text-decoration:none;display:inline-block;">&lt;&lt;&lt; PREVIOUS</a>
 
       <form method="POST" action="request_submit.php" style="margin:0;">
+        <?= csrf_field() ?>
         <button class="btn save" type="submit">SAVE</button>
       </form>
     </div>
@@ -209,7 +206,7 @@ if ($badgeCount > 99) $badgeCount = 99;
 
   async function markSeen(){
     try{
-      await fetch("notif_seen.php", { method: "POST" });
+      await fetch("notif_seen.php", { method: "POST", headers: {"Content-Type": "application/x-www-form-urlencoded"}, body: "_csrf_token=<?= urlencode(csrf_token()) ?>" });
       if (badge) badge.style.display = "none";
     }catch(e){}
   }

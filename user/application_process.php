@@ -1,11 +1,6 @@
 <?php
-session_start();
-require_once "../config/database.php";
-
-if (!isset($_SESSION["user_id"]) || $_SESSION["role"] !== "USER") {
-  header("Location: ../auth/auth.php");
-  exit();
-}
+require_once __DIR__ . "/../includes/helpers.php";
+require_role(ROLE_USER);
 
 // pull ALL doc types from requirements_master (not from requests)
 $docs = [];
@@ -156,7 +151,7 @@ if ($badgeCount > 99) $badgeCount = 99;
 
   async function markSeen(){
     try{
-      await fetch("notif_seen.php", { method: "POST" });
+      await fetch("notif_seen.php", { method: "POST", headers: {"Content-Type": "application/x-www-form-urlencoded"}, body: "_csrf_token=<?= urlencode(csrf_token()) ?>" });
       if (badge) badge.style.display = "none";
     }catch(e){}
   }

@@ -1,11 +1,6 @@
 <?php
-session_start();
-require_once "../config/database.php";
-
-if (!isset($_SESSION["user_id"]) || $_SESSION["role"] !== "REGISTRAR") {
-  header("Location: ../auth/auth.php");
-  exit();
-}
+require_once __DIR__ . "/../includes/helpers.php";
+require_role(ROLE_REGISTRAR);
 
 $registrarName = "Registrar";
 $registrarLabel = "Registrar";

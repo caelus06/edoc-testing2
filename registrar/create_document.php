@@ -1,12 +1,6 @@
 <?php
-session_start();
-require_once "../config/database.php";
-
-// Verify user is registrar
-if (!isset($_SESSION["user_id"]) || $_SESSION["role"] !== "REGISTRAR") {
-    header("Location: ../auth/auth.php");
-    exit();
-}
+require_once __DIR__ . "/../includes/helpers.php";
+require_role(ROLE_REGISTRAR);
 
 $registrarId = (int)$_SESSION["user_id"];
 

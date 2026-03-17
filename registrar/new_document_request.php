@@ -1,14 +1,7 @@
 <?php
 // registrar/new_document_request.php
-session_start();
-require_once "../config/database.php";
-
-if (!isset($_SESSION["user_id"]) || ($_SESSION["role"] ?? "") !== "REGISTRAR") {
-  header("Location: ../auth/auth.php");
-  exit();
-}
-
-function h($s){ return htmlspecialchars((string)($s ?? ""), ENT_QUOTES, "UTF-8"); }
+require_once __DIR__ . "/../includes/helpers.php";
+require_role(ROLE_REGISTRAR);
 
 $registrarId = (int)$_SESSION["user_id"];
 
@@ -135,6 +128,7 @@ if ($step === 2) {
 
   // Handle create request
   if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["action"] ?? "") === "create") {
+    csrf_verify();
     $document_type = trim($_POST["document_type"] ?? "");
     $title_type    = trim($_POST["title_type"] ?? "");
     $purpose       = trim($_POST["purpose"] ?? "");
@@ -376,6 +370,7 @@ if ($step === 2) {
         </div>
 
         <form method="POST" class="form-card">
+          <?= csrf_field() ?>
           <input type="hidden" name="action" value="create">
           <input type="hidden" name="step" value="2">
           <input type="hidden" name="user_id" value="<?= (int)$user_id ?>">

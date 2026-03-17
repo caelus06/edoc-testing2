@@ -1,21 +1,8 @@
 <?php
-session_start();
-require_once "../config/database.php";
-
-if (!isset($_SESSION["user_id"]) || ($_SESSION["role"] ?? "") !== "REGISTRAR") {
-  header("Location: ../auth/auth.php");
-  exit();
-}
+require_once __DIR__ . "/../includes/helpers.php";
+require_role(ROLE_REGISTRAR);
 
 $registrar_id = (int)$_SESSION["user_id"];
-
-function h($s){ return htmlspecialchars((string)($s ?? ""), ENT_QUOTES, "UTF-8"); }
-
-function add_log(mysqli $conn, int $request_id, string $msg){
-  $st = $conn->prepare("INSERT INTO request_logs (request_id, message) VALUES (?, ?)");
-  $st->bind_param("is", $request_id, $msg);
-  $st->execute();
-}
 
 function redirect_back(int $request_id, string $rk){
   header("Location: verify_request.php?id={$request_id}&rk=" . urlencode($rk));
@@ -207,6 +194,7 @@ $accountStatus = strtoupper($reqRow["verification_status"] ?? "PENDING");
 // Handle POST actions
 // ------------------------------
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
+  csrf_verify();
   $action = trim($_POST["action"] ?? "");
 
   // trust rk from POST for actions
@@ -426,6 +414,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
   <!-- LEFT (FORM) -->
   <form id="verifyForm" class="verify-left" method="POST" action="verify_request.php">
+    <?= csrf_field() ?>
     <input type="hidden" name="request_id" value="<?= (int)$request_id ?>">
     <input type="hidden" name="rk" value="<?= h($rk) ?>">
 
@@ -563,6 +552,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <div class="right-actions">
       <!-- DELETE -->
       <form method="POST" action="verify_request.php" class="mini-form">
+        <?= csrf_field() ?>
         <input type="hidden" name="request_id" value="<?= (int)$request_id ?>">
         <input type="hidden" name="rk" value="<?= h($rk) ?>">
         <input type="hidden" name="action" value="delete">
@@ -571,6 +561,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
       <!-- UPLOAD -->
       <form method="POST" action="verify_request.php" enctype="multipart/form-data" class="mini-form upload-form">
+        <?= csrf_field() ?>
         <input type="hidden" name="request_id" value="<?= (int)$request_id ?>">
         <input type="hidden" name="rk" value="<?= h($rk) ?>">
         <input type="hidden" name="action" value="upload">

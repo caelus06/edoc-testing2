@@ -1,10 +1,9 @@
 <?php
-session_start();
-require_once "../config/database.php";
-
-if (!isset($_SESSION["user_id"])) header("Location: ../auth/auth.php");
+require_once __DIR__ . "/../includes/helpers.php";
+require_role(ROLE_USER);
 ?>
 <form method="POST" action="upload_requirements.php">
+  <?= csrf_field() ?>
   <h2>Upload Requirements</h2>
   <select name="document_type" required>
     <option value="">-- Select Document --</option>

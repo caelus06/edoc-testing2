@@ -1,14 +1,15 @@
 <?php
-session_start();
-require_once "../config/database.php";
+require_once __DIR__ . "/../includes/helpers.php";
 
 header("Content-Type: application/json");
 
-if (!isset($_SESSION["user_id"]) || $_SESSION["role"] !== "USER") {
+if (!isset($_SESSION["user_id"]) || ($_SESSION["role"] ?? "") !== ROLE_USER) {
   http_response_code(401);
   echo json_encode(["ok" => false, "error" => "Unauthorized"]);
   exit();
 }
+
+csrf_verify();
 
 $user_id = (int)$_SESSION["user_id"];
 

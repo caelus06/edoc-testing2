@@ -1,11 +1,6 @@
 <?php
-session_start();
-require_once "../config/database.php";
-
-if (!isset($_SESSION["user_id"]) || $_SESSION["role"] !== "USER") {
-  header("Location: ../auth/auth.php");
-  exit();
-}
+require_once __DIR__ . "/../includes/helpers.php";
+require_role(ROLE_USER);
 
 $user_id = (int)$_SESSION["user_id"];
 $ref = trim($_GET["ref"] ?? "");
@@ -172,6 +167,7 @@ if ($badgeCount > 99) $badgeCount = 99;
     </div>
 
     <form method="POST" action="upload_requirements_save.php" enctype="multipart/form-data" style="margin-top:14px;">
+      <?= csrf_field() ?>
       <input type="hidden" name="ref" value="<?= htmlspecialchars($ref) ?>">
 
       <?php if (count($requirements)===0): ?>
@@ -240,7 +236,7 @@ if ($badgeCount > 99) $badgeCount = 99;
 
   async function markSeen(){
     try{
-      await fetch("notif_seen.php", { method: "POST" });
+      await fetch("notif_seen.php", { method: "POST", headers: {"Content-Type": "application/x-www-form-urlencoded"}, body: "_csrf_token=<?= urlencode(csrf_token()) ?>" });
       if (badge) badge.style.display = "none";
     }catch(e){}
   }

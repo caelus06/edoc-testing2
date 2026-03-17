@@ -1,16 +1,7 @@
 <?php
 // registrar/document_management.php
-session_start();
-require_once "../config/database.php";
-
-
-if (!isset($_SESSION["user_id"]) || ($_SESSION["role"] ?? "") !== "REGISTRAR") {
-  header("Location: ../auth/auth.php");
-  exit();
-}
-
-
-function h($s){ return htmlspecialchars((string)($s ?? ""), ENT_QUOTES, "UTF-8"); }
+require_once __DIR__ . "/../includes/helpers.php";
+require_role(ROLE_REGISTRAR);
 
 
 $registrarId = (int)$_SESSION["user_id"];
@@ -28,6 +19,7 @@ if ($mr) $registrarName = trim(($mr["first_name"] ?? "") . " " . ($mr["last_name
 // Handle add/edit
 $message = "";
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
+  csrf_verify();
   $action = $_POST["action"] ?? "";
   if ($action === "add" || $action === "edit") {
     $name = trim($_POST["name"] ?? "");
@@ -246,6 +238,7 @@ $documents = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     <div class="modal-content">
       <h2 id="modal-title">Add Document</h2>
       <form method="POST" id="doc-form">
+        <?= csrf_field() ?>
         <input type="hidden" name="action" id="action" value="add">
         <input type="hidden" name="id" id="doc-id" value="">
         <div class="form-group">

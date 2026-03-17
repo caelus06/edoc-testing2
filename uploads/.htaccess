@@ -1,0 +1,12 @@
+# Prevent PHP execution in the uploads directory
+php_flag engine off
+
+# Deny access to .php files as an extra safeguard
+<FilesMatch "\.php$">
+    Deny from all
+</FilesMatch>
+
+# Only allow common document and image types
+<FilesMatch "\.(pdf|jpg|jpeg|png|webp|gif)$">
+    Allow from all
+</FilesMatch>

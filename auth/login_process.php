@@ -1,6 +1,5 @@
 <?php
-session_start();
-require_once "../config/database.php";
+require_once __DIR__ . "/../includes/helpers.php";
 
 function fail($msg) {
   http_response_code(401);
@@ -9,6 +8,7 @@ function fail($msg) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") fail("Invalid request.");
+csrf_verify();
 
 $email = trim($_POST["email"] ?? "");
 $password = $_POST["password"] ?? "";

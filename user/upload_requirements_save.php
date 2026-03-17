@@ -1,11 +1,7 @@
 <?php
-session_start();
-require_once "../config/database.php";
-
-if (!isset($_SESSION["user_id"]) || ($_SESSION["role"] ?? "") !== "USER") {
-  header("Location: ../auth/auth.php");
-  exit();
-}
+require_once __DIR__ . "/../includes/helpers.php";
+require_role(ROLE_USER);
+csrf_verify();
 
 $user_id    = (int)$_SESSION["user_id"];
 $request_id = (int)($_SESSION["upload_request_id"] ?? 0);
@@ -129,10 +125,7 @@ for ($i = 0; $i < count($req_names); $i++) {
 }
 
 // log
-$log = $conn->prepare("INSERT INTO request_logs (request_id, message) VALUES (?, ?)");
-$msg = "REQUIREMENTS UPLOADED";
-$log->bind_param("is", $request_id, $msg);
-$log->execute();
+add_log($conn, $request_id, "REQUIREMENTS UPLOADED");
 
 // redirect back to track page
 header("Location: track.php?ref=" . urlencode($ref));

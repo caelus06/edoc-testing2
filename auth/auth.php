@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . "/../includes/helpers.php";
 $signupSuccess = (isset($_GET["signup"]) && $_GET["signup"] === "success");
 ?>
 <!DOCTYPE html>
@@ -44,6 +45,7 @@ $signupSuccess = (isset($_GET["signup"]) && $_GET["signup"] === "success");
 
     <!-- LOGIN FORM -->
     <form id="loginForm" class="form" method="POST" action="login_process.php">
+      <?= csrf_field() ?>
       <label class="label">EMAIL</label>
       <input class="input" type="email" name="email" placeholder="name@gmail.com" required>
 
@@ -58,6 +60,7 @@ $signupSuccess = (isset($_GET["signup"]) && $_GET["signup"] === "success");
 
     <!-- SIGNUP FORM -->
     <form id="signupForm" class="form" method="POST" action="signup_process.php" enctype="multipart/form-data" hidden>
+      <?= csrf_field() ?>
 
       <div class="grid">
         <div>
