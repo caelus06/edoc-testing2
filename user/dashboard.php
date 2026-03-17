@@ -182,7 +182,7 @@ function page_url($pageNum, $q, $status){
     </span>
 
     <div class="icon-btn" title="Account"><a href="profile.php">👤</a></div>
-    <button class="icon-btn" title="Logout" id="logoutBtn" style="background:none; border:none; cursor:pointer;">⎋</button>
+    <button class="icon-btn" title="Logout" id="logoutBtn";">⎋</button>
   </div>
 </header>
 
