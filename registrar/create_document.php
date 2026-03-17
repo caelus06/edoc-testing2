@@ -101,7 +101,7 @@ function badgeClass($s){
 <head>
     <meta charset="UTF-8" />
     <title>Create Document</title>
-    <link rel="stylesheet" href="../assets/css/create_document.css">
+    <link rel="stylesheet" href="../assets/css/create_document.css" />
 </head>
 <body>
 

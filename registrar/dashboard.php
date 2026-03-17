@@ -124,22 +124,22 @@ $trk_ready      = countRequestsByStatus($conn, "READY FOR PICKUP");
       <!-- ACCOUNT MANAGEMENT -->
       <div class="section-label">ACCOUNT MANAGEMENT</div>
       <div class="cards-4">
-        <a class="card clickable" href="verification.php?filter=VERIFIED">
+        <a class="card clickable">
           <div class="big"><?= (int)$acc_verified ?></div>
           <div class="desc"><b>Verified:</b> The account holder’s identity or information has been successfully confirmed and validated.</div>
         </a>
 
-        <a class="card clickable" href="verification.php?filter=PENDING">
+        <a class="card clickable">
           <div class="big"><?= (int)$acc_unverified ?></div>
           <div class="desc"><b>Unverified:</b> The account creation is on process, and identity confirmation is pending or not yet started.</div>
         </a>
 
-        <a class="card clickable" href="verification.php?filter=RESUBMIT">
+        <a class="card clickable">
           <div class="big"><?= (int)$acc_resubmit ?></div>
           <div class="desc"><b>Resubmit:</b> Previous attempts to verify the account failed; the user must provide new or corrected documentation.</div>
         </a>
 
-        <a class="card clickable" href="verification.php?filter=UNAFFILIATED">
+        <a class="card clickable">
           <div class="big"><?= (int)$acc_unaffiliated ?></div>
           <div class="desc"><b>Unaffiliated:</b> The individual has no formal or official connection to the organization/system being accessed.</div>
         </a>
