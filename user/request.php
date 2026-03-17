@@ -15,6 +15,19 @@ if (isset($_GET['clear']) && $_GET['clear'] === '1') {
     exit();
 }
 
+// Block pending accounts that already have a request
+$user_id = (int)$_SESSION["user_id"];
+if (($_SESSION["verification_status"] ?? "") === "PENDING") {
+  $countStmt = $conn->prepare("SELECT COUNT(*) AS total FROM requests WHERE user_id = ?");
+  $countStmt->bind_param("i", $user_id);
+  $countStmt->execute();
+  $reqCount = (int)$countStmt->get_result()->fetch_assoc()["total"];
+  if ($reqCount >= 1) {
+    header("Location: dashboard.php?limit=1");
+    exit();
+  }
+}
+
 // Check if there is existing data in the session to pre-fill the form
 $saved_req = $_SESSION["req"] ?? null;
 

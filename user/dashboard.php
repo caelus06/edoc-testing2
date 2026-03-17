@@ -190,6 +190,19 @@ function page_url($pageNum, $q, $status){
 
 <main class="container">
 
+  <?php if (($_SESSION["verification_status"] ?? "") === "PENDING"): ?>
+    <section class="panel welcome" style="background:#fff3cd;border:1px solid #ffc107;border-radius:12px;padding:14px 18px;margin-bottom:0;">
+      <h2 style="color:#856404;margin:0 0 4px;">Account Pending Verification</h2>
+      <p style="color:#856404;margin:0;">Your account is still pending MIS verification. You are limited to <b>1 document request</b> until your account is verified.</p>
+    </section>
+  <?php endif; ?>
+
+  <?php if (isset($_GET["limit"])): ?>
+    <section class="panel welcome" style="background:#f8d7da;border:1px solid #f5c6cb;border-radius:12px;padding:14px 18px;margin-bottom:0;">
+      <p style="color:#721c24;margin:0;"><b>Request limit reached.</b> Pending accounts can only submit 1 document request. Please wait for your account to be verified by MIS.</p>
+    </section>
+  <?php endif; ?>
+
   <section class="panel welcome">
     <h2>Welcome!</h2>
     <p>Track your document requests and submit new applications easily.</p>
