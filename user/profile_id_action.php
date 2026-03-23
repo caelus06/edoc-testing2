@@ -85,6 +85,8 @@ if ($action === "upload") {
     $stmt->bind_param("si", $relative, $user_id);
     $stmt->execute();
 
+    audit_log($conn, "UPDATE", "users", $user_id, "Uploaded " . $type . " ID photo");
+
     $stepIdx = array_search($type, $valid_types);
     header("Location: profile.php?msg=uploaded&step=" . $stepIdx);
     exit();
@@ -109,6 +111,8 @@ if ($action === "delete") {
         $stmt = $conn->prepare("UPDATE users SET " . $col . " = NULL WHERE id = ?");
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
+
+        audit_log($conn, "UPDATE", "users", $user_id, "Deleted " . $type . " ID photo");
     }
 
     $stepIdx = array_search($type, $valid_types);

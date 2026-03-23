@@ -169,6 +169,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
           $ins->execute();
 
           add_log($conn, $request_id, "Requirement uploaded: " . $postReqName);
+          audit_log($conn, "INSERT", "request_files", $request_id, "Requirement uploaded: " . $postReqName);
           $uploadMsg = "Successfully uploaded: " . $postReqName;
         }
       }

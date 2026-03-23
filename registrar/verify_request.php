@@ -4,6 +4,12 @@ require_role(ROLE_REGISTRAR);
 
 $registrar_id = (int)$_SESSION["user_id"];
 
+$_regQ = $conn->prepare("SELECT first_name, last_name FROM users WHERE id = ? LIMIT 1");
+$_regQ->bind_param("i", $registrar_id);
+$_regQ->execute();
+$_regRow = $_regQ->get_result()->fetch_assoc();
+$registrar_name = $_regRow ? trim($_regRow["first_name"] . " " . $_regRow["last_name"]) : "Registrar #" . $registrar_id;
+
 function redirect_back(int $request_id, string $rk){
   header("Location: verify_request.php?id={$request_id}&rk=" . urlencode($rk));
   exit();
@@ -232,7 +238,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     ");
                     $up->bind_param("iis", $registrar_id, $request_id, $key);
                     $up->execute();
-                    add_log($conn, $request_id, "Registrar Update: " . ucfirst($key) . " has been verified");
+                    add_log($conn, $request_id, "Registrar Update (" . $registrar_name . "): " . ucfirst($key) . " has been verified");
+                    audit_log($conn, "UPDATE", "request_files", $request_id, "Verified: " . ucfirst($key));
                 } elseif ($val === "RESUBMIT" && $currentReviewStatus !== "RESUBMIT") {
                     $up = $conn->prepare("
                       UPDATE request_files
@@ -241,7 +248,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     ");
                     $up->bind_param("sis", $reason, $request_id, $key);
                     $up->execute();
-                    add_log($conn, $request_id, "Registrar Update: Resubmission required for " . ucfirst($key));
+                    add_log($conn, $request_id, "Registrar Update (" . $registrar_name . "): Resubmission required for " . ucfirst($key));
+                    audit_log($conn, "UPDATE", "request_files", $request_id, "Resubmit required: " . ucfirst($key));
                 } elseif ($val === "RESUBMIT" && $currentReviewStatus === "RESUBMIT") {
                     // Same status but reason may have changed
                     $up = $conn->prepare("
@@ -259,7 +267,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     ");
                     $up->bind_param("is", $request_id, $key);
                     $up->execute();
-                    add_log($conn, $request_id, "Registrar Update: " . ucfirst($key) . " returned to Pending");
+                    add_log($conn, $request_id, "Registrar Update (" . $registrar_name . "): " . ucfirst($key) . " returned to Pending");
+                    audit_log($conn, "UPDATE", "request_files", $request_id, "Returned to pending: " . ucfirst($key));
                 }
             }
         }
@@ -277,7 +286,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $upReq = $conn->prepare("UPDATE requests SET status=?, updated_at=NOW() WHERE id=?");
                 $upReq->bind_param("si", $app_status, $request_id);
                 $upReq->execute();
-                add_log($conn, $request_id, "Registrar Update: Application status updated to " . $app_status);
+                add_log($conn, $request_id, "Registrar Update (" . $registrar_name . "): Application status updated to " . $app_status);
+                audit_log($conn, "UPDATE", "requests", $request_id, "Application status updated to " . $app_status);
             }
         }
         redirect_back($request_id, $rk);
@@ -307,6 +317,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $del->execute();
 
     add_log($conn, $request_id, "Registrar Update: Removed " . ucfirst($rk));
+    audit_log($conn, "DELETE", "request_files", $row["id"], "Removed file: " . ucfirst($rk));
     redirect_back($request_id, $rk);
   }
 
@@ -386,6 +397,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 
     add_log($conn, $request_id, "Registrar Update: " . ucfirst($rk) . " uploaded");
+    audit_log($conn, "INSERT", "request_files", $request_id, "Uploaded file: " . ucfirst($rk));
     redirect_back($request_id, $rk);
   }
 

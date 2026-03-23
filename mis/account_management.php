@@ -84,6 +84,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["action"] ?? "") === "delet
       $up->bind_param("i", $user_id);
       $up->execute();
 
+      audit_log($conn, "UPDATE", "users", $user_id, "MIS removed " . strtoupper($id_type) . " ID" . ($reason !== "" ? " — Reason: " . $reason : ""));
+
       // Log the action if the user has a request
       $rq = $conn->prepare("SELECT id FROM requests WHERE user_id=? ORDER BY created_at DESC, id DESC LIMIT 1");
       $rq->bind_param("i", $user_id);
@@ -179,6 +181,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["action"] ?? "") === "uploa
           $upUser->bind_param("si", $relative, $user_id);
           $upUser->execute();
 
+          audit_log($conn, "UPDATE", "users", $user_id, "MIS uploaded " . strtoupper($id_type) . " ID");
+
           // Log the action if the user has a request
           $rq = $conn->prepare("SELECT id FROM requests WHERE user_id=? ORDER BY created_at DESC, id DESC LIMIT 1");
           $rq->bind_param("i", $user_id);
@@ -260,6 +264,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["action"] ?? "") === "save_
     }
 
     if ($up->execute()) {
+      audit_log($conn, "UPDATE", "users", $user_id, "MIS updated user account");
       header("Location: account_management.php?edit=" . $user_id . "&msg=saved");
       exit();
     } else {
@@ -370,6 +375,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["action"] ?? "") === "impor
           );
 
           if ($ins->execute()) {
+            $importedUserId = $conn->insert_id;
+            audit_log($conn, "INSERT", "users", $importedUserId, "Bulk imported account: " . $email);
             $imported++;
           } else {
             $skipped++;

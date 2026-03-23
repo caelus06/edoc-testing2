@@ -43,5 +43,7 @@ $stmt->bind_param(
 
 $stmt->execute();
 
+audit_log($conn, "UPDATE", "users", $user_id, "Profile updated");
+
 header("Location: profile.php?saved=1");
 exit();

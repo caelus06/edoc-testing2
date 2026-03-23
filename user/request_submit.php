@@ -108,6 +108,7 @@ $newRequestId = $conn->insert_id;
 
 $message = "PENDING - " . strtoupper($document_type) . " (" . strtoupper($title_type) . ")";
 add_log($conn, $newRequestId, $message);
+audit_log($conn, "INSERT", "requests", $newRequestId, "New request: " . strtoupper($document_type) . " (" . strtoupper($title_type) . ")");
 
 // Clear session draft
 unset($_SESSION["req"]);

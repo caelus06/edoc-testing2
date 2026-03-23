@@ -534,7 +534,13 @@ if ($detailId > 0) {
                     $info->bind_param("i", $r["id"]);
                     $info->execute();
                     $iv = $info->get_result()->fetch_assoc();
-                    if ($iv && !empty($iv["verified_by"])) $vb = "R1";
+                    if ($iv && !empty($iv["verified_by"])) {
+                      $regQ = $conn->prepare("SELECT first_name, last_name FROM users WHERE id = ? LIMIT 1");
+                      $regQ->bind_param("i", $iv["verified_by"]);
+                      $regQ->execute();
+                      $regRow = $regQ->get_result()->fetch_assoc();
+                      $vb = $regRow ? trim($regRow["first_name"] . " " . $regRow["last_name"]) : "Registrar #" . $iv["verified_by"];
+                    }
 
                     $st = strtoupper($r["status"] ?? "PENDING");
                   ?>

@@ -35,6 +35,8 @@ $_SESSION["user_id"] = $user["id"];
 $_SESSION["role"] = $user["role"];
 $_SESSION["verification_status"] = $user["verification_status"];
 
+audit_log($conn, "LOGIN", "users", $user["id"], "User logged in");
+
 if ($user["role"] === "REGISTRAR") {
   header("Location: ../registrar/dashboard.php");
 } elseif ($user["role"] === "MIS") {

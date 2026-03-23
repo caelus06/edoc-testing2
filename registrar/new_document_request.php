@@ -183,6 +183,8 @@ if ($step === 2) {
           $lg->bind_param("is", $newRequestId, $msg);
           $lg->execute();
 
+          audit_log($conn, "INSERT", "requests", $newRequestId, "Registrar created request " . $reference_no);
+
           header("Location: verify_request.php?id=" . $newRequestId);
           exit();
         }
