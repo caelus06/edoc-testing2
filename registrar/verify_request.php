@@ -204,6 +204,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   // SAVE
   if ($action === "save") {
     $req_status = $_POST["req_status"] ?? [];
+    $resubmit_reasons = $_POST["resubmit_reason"] ?? [];
     $app_status = normalize_app_status($_POST["app_status"] ?? "");
 
     // 1. Update Requirements ONLY IF changed
@@ -213,48 +214,53 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $val = strtoupper(trim((string)$val));
                 if ($key === "" || $key === $SCANNED_KEY) continue;
 
-                $row = $conn->prepare("SELECT id, verified_at FROM request_files WHERE request_id=? AND requirement_key=? LIMIT 1");
+                $row = $conn->prepare("SELECT id, verified_at, review_status FROM request_files WHERE request_id=? AND requirement_key=? LIMIT 1");
                 $row->bind_param("is", $request_id, $key);
                 $row->execute();
                 $rf = $row->get_result()->fetch_assoc();
                 if (!$rf) continue;
 
-              // is currently verified
-               $isCurrentlyVerified = !empty($rf["verified_at"]);
+                $currentReviewStatus = strtoupper($rf["review_status"] ?? "PENDING");
+                $reason = trim((string)($resubmit_reasons[$key] ?? ""));
 
-                // Handle Status Transitions
-                if ($val === "VERIFIED" && !$isCurrentlyVerified) {
-                  // Change from Not Verified to Verified
+                // Handle Status Transitions (only if changed)
+                if ($val === "VERIFIED" && $currentReviewStatus !== "VERIFIED") {
                     $up = $conn->prepare("
-                      UPDATE request_files 
-                      SET verified_at=NOW(), verified_by=?  
-                      WHERE request_id=? AND requirement_key=? 
+                      UPDATE request_files
+                      SET verified_at=NOW(), verified_by=?, review_status='VERIFIED', resubmit_reason=NULL
+                      WHERE request_id=? AND requirement_key=?
                     ");
                     $up->bind_param("iis", $registrar_id, $request_id, $key);
                     $up->execute();
                     add_log($conn, $request_id, "Registrar Update: " . ucfirst($key) . " has been verified");
-                } elseif ($val === "RESUBMIT" && $isCurrentlyVerified) {
-                    // Downgrade from Verified to Resubmit
-                    $up = $conn->prepare("
-                      UPDATE request_files 
-                      SET verified_at=NULL, verified_by=NULL 
-                      WHERE request_id=? AND requirement_key=?
-                    ");
-                    $up->bind_param("is", $request_id, $key);
-                    $up->execute();
-                    add_log($conn, $request_id, "Registrar Update: Resubmission required for " . ucfirst($key));
-                  } elseif ($val === "PENDING" && $isCurrentlyVerified) {
-                    // Downgrade from Verified to Pending
+                } elseif ($val === "RESUBMIT" && $currentReviewStatus !== "RESUBMIT") {
                     $up = $conn->prepare("
                       UPDATE request_files
-                      SET verified_at=NULL, verified_by=NULL
+                      SET verified_at=NULL, verified_by=NULL, review_status='RESUBMIT', resubmit_reason=?
+                      WHERE request_id=? AND requirement_key=?
+                    ");
+                    $up->bind_param("sis", $reason, $request_id, $key);
+                    $up->execute();
+                    add_log($conn, $request_id, "Registrar Update: Resubmission required for " . ucfirst($key));
+                } elseif ($val === "RESUBMIT" && $currentReviewStatus === "RESUBMIT") {
+                    // Same status but reason may have changed
+                    $up = $conn->prepare("
+                      UPDATE request_files
+                      SET resubmit_reason=?
+                      WHERE request_id=? AND requirement_key=?
+                    ");
+                    $up->bind_param("sis", $reason, $request_id, $key);
+                    $up->execute();
+                } elseif ($val === "PENDING" && $currentReviewStatus !== "PENDING") {
+                    $up = $conn->prepare("
+                      UPDATE request_files
+                      SET verified_at=NULL, verified_by=NULL, review_status='PENDING', resubmit_reason=NULL
                       WHERE request_id=? AND requirement_key=?
                     ");
                     $up->bind_param("is", $request_id, $key);
                     $up->execute();
                     add_log($conn, $request_id, "Registrar Update: " . ucfirst($key) . " returned to Pending");
-                  }
-                  // Note: If $val matches the current state (Verified -> Verified, etc.), no code executes = no duplicate logs.
+                }
             }
         }
 
@@ -457,19 +463,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <?php
           $key = (string)$r["requirement_key"];
           $row = $filesByKey[$key] ?? null;
-          $isVerified = ($row && !empty($row["verified_at"]));
-          $statusVal = $isVerified ? "VERIFIED" : "PENDING";
+          $statusVal = strtoupper($row["review_status"] ?? "PENDING");
+          $savedReason = $row["resubmit_reason"] ?? "";
         ?>
         <div class="req-row">
           <div class="req-name"><?= h($r["req_name"]) ?></div>
 
-          <select class="req-select" name="req_status[<?= h($key) ?>]">
+          <select class="req-select status-select" name="req_status[<?= h($key) ?>]" data-key="<?= h($key) ?>">
             <option value="PENDING"  <?= $statusVal==="PENDING" ? "selected" : "" ?>>PENDING</option>
             <option value="VERIFIED" <?= $statusVal==="VERIFIED" ? "selected" : "" ?>>VERIFIED</option>
-            <option value="RESUBMIT">RESUBMIT</option>
+            <option value="RESUBMIT" <?= $statusVal==="RESUBMIT" ? "selected" : "" ?>>RESUBMIT</option>
           </select>
 
           <a class="req-view" href="verify_request.php?id=<?= (int)$request_id ?>&rk=<?= urlencode($key) ?>">View</a>
+        </div>
+        <div class="resubmit-reason-wrap" id="reason-<?= h($key) ?>" style="display:<?= $statusVal==="RESUBMIT" ? "block" : "none" ?>;">
+          <textarea class="resubmit-textarea" name="resubmit_reason[<?= h($key) ?>]" placeholder="Reason for resubmission..." maxlength="500"><?= h($savedReason) ?></textarea>
         </div>
       <?php endforeach; ?>
 
@@ -591,5 +600,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   </section>
 
 </main>
+
+<script>
+  // Show/hide resubmit reason textarea based on dropdown selection
+  document.querySelectorAll(".status-select").forEach(function(select) {
+    select.addEventListener("change", function() {
+      var key = this.getAttribute("data-key");
+      var reasonWrap = document.getElementById("reason-" + key);
+      if (reasonWrap) {
+        reasonWrap.style.display = (this.value === "RESUBMIT") ? "block" : "none";
+      }
+    });
+  });
+</script>
 </body>
 </html>
