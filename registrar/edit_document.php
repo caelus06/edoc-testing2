@@ -97,6 +97,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       $upd = $conn->prepare("UPDATE document_process SET document_type=?, working_days=?, last_updated=NOW(), updated_by=? WHERE id=?");
       $upd->bind_param("ssii", $newName, $newTime, $registrarId, $docId);
       $upd->execute();
+      audit_log($conn, "UPDATE", "document_process", $docId, "Renamed document to: " . $newName);
       echo json_encode(["success" => true, "document_name" => $newName, "processing_time" => $newTime]);
     } else {
       echo json_encode(["success" => false, "error" => "All fields required."]);
@@ -123,6 +124,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       $upd = $conn->prepare("UPDATE requirements_master SET title_type=? WHERE document_type=? AND title_type=?");
       $upd->bind_param("sss", $newTitle, $docType, $oldTitle);
       $upd->execute();
+      audit_log($conn, "UPDATE", "requirements_master", null, "Renamed title '" . $oldTitle . "' to '" . $newTitle . "' in " . $docType);
       $processData2 = getFreshProcessData($conn, $docId);
       foreach (($processData2["reminders"] ?? []) as &$r) {
         if (($r["title_type"] ?? "") === $oldTitle) $r["title_type"] = $newTitle;
@@ -149,6 +151,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $del = $conn->prepare("DELETE FROM requirements_master WHERE document_type=? AND title_type=?");
     $del->bind_param("ss", $docType, $titleName);
     $del->execute();
+    audit_log($conn, "DELETE", "requirements_master", null, "Deleted title '" . $titleName . "' from " . $docType);
 
     // Remove reminders linked to this title
     $pData = getFreshProcessData($conn, $docId);
@@ -198,6 +201,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $ins->execute();
 
     $newId = $conn->insert_id;
+    audit_log($conn, "INSERT", "requirements_master", $newId, "Added requirement: " . $reqName . " under " . $titleType);
 
     echo json_encode([
       "success" => true,
@@ -221,6 +225,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       $upd = $conn->prepare("UPDATE requirements_master SET req_name=?, requirement_key=? WHERE id=?");
       $upd->bind_param("ssi", $reqName, $reqKey, $reqId);
       $upd->execute();
+      audit_log($conn, "UPDATE", "requirements_master", $reqId, "Updated requirement: " . $reqName);
       echo json_encode(["success" => true, "req_name" => $reqName]);
     } else {
       echo json_encode(["success" => false, "error" => "Fields required."]);
@@ -235,6 +240,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       $del = $conn->prepare("DELETE FROM requirements_master WHERE id=?");
       $del->bind_param("i", $reqId);
       $del->execute();
+      audit_log($conn, "DELETE", "requirements_master", $reqId, "Deleted requirement #" . $reqId);
       echo json_encode(["success" => true]);
     } else {
       echo json_encode(["success" => false, "error" => "ID required."]);
@@ -253,6 +259,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       $upd = $conn->prepare("UPDATE document_process SET process_html=?, last_updated=NOW(), updated_by=? WHERE id=?");
       $upd->bind_param("sii", $newJson, $registrarId, $docId);
       $upd->execute();
+      audit_log($conn, "INSERT", "document_process", $docId, "Added reminder for " . ($titleType ?: "general"));
       $added = end($pData["reminders"]);
       echo json_encode(["success" => true, "reminder" => $added]);
     } else {
@@ -275,6 +282,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       $upd = $conn->prepare("UPDATE document_process SET process_html=?, last_updated=NOW(), updated_by=? WHERE id=?");
       $upd->bind_param("sii", $newJson, $registrarId, $docId);
       $upd->execute();
+      audit_log($conn, "UPDATE", "document_process", $docId, "Edited reminder");
       echo json_encode(["success" => true, "details" => $details, "title_type" => $titleType]);
     } else {
       echo json_encode(["success" => false, "error" => "Fields required."]);
@@ -292,6 +300,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       $upd = $conn->prepare("UPDATE document_process SET process_html=?, last_updated=NOW(), updated_by=? WHERE id=?");
       $upd->bind_param("sii", $newJson, $registrarId, $docId);
       $upd->execute();
+      audit_log($conn, "DELETE", "document_process", $docId, "Deleted reminder");
       echo json_encode(["success" => true]);
     } else {
       echo json_encode(["success" => false, "error" => "ID required."]);
@@ -309,6 +318,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       $upd = $conn->prepare("UPDATE document_process SET process_html=?, last_updated=NOW(), updated_by=? WHERE id=?");
       $upd->bind_param("sii", $newJson, $registrarId, $docId);
       $upd->execute();
+      audit_log($conn, "INSERT", "document_process", $docId, "Added application process step");
       $added = end($pData["application_process"]);
       echo json_encode(["success" => true, "app_process" => $added]);
     } else {
@@ -330,6 +340,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       $upd = $conn->prepare("UPDATE document_process SET process_html=?, last_updated=NOW(), updated_by=? WHERE id=?");
       $upd->bind_param("sii", $newJson, $registrarId, $docId);
       $upd->execute();
+      audit_log($conn, "UPDATE", "document_process", $docId, "Edited application process step");
       echo json_encode(["success" => true, "details" => $details]);
     } else {
       echo json_encode(["success" => false, "error" => "Fields required."]);
@@ -347,6 +358,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       $upd = $conn->prepare("UPDATE document_process SET process_html=?, last_updated=NOW(), updated_by=? WHERE id=?");
       $upd->bind_param("sii", $newJson, $registrarId, $docId);
       $upd->execute();
+      audit_log($conn, "DELETE", "document_process", $docId, "Deleted application process step");
       echo json_encode(["success" => true]);
     } else {
       echo json_encode(["success" => false, "error" => "ID required."]);
@@ -362,6 +374,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $d2 = $conn->prepare("DELETE FROM document_process WHERE id=?");
     $d2->bind_param("i", $docId);
     $d2->execute();
+    audit_log($conn, "DELETE", "document_process", $docId, "Deleted entire document type: " . $docType);
     echo json_encode(["success" => true]);
     exit();
   }

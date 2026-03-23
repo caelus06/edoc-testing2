@@ -182,9 +182,24 @@ function badgeClass($s){
                                     $name = strtoupper(trim(($r["last_name"]??"").", ".($r["first_name"]??"")." ".($r["middle_name"]??"")));
                                     $date = $r["created_at"] ? date("m/d/y", strtotime($r["created_at"])) : "-";
                                     
-                                    // Simulation of verification info as per your requirement
-                                    $vb = "R1"; 
-                                    $vd = "01/05/26"; 
+                                    $vb = "-"; $vd = "-";
+                                    $vInfo = $conn->prepare("
+                                      SELECT rf.verified_by, rf.verified_at
+                                      FROM request_files rf
+                                      WHERE rf.request_id = ? AND rf.verified_at IS NOT NULL
+                                      ORDER BY rf.verified_at DESC LIMIT 1
+                                    ");
+                                    $vInfo->bind_param("i", $r["id"]);
+                                    $vInfo->execute();
+                                    $vRow = $vInfo->get_result()->fetch_assoc();
+                                    if ($vRow && $vRow["verified_by"]) {
+                                      $regQ = $conn->prepare("SELECT first_name, last_name FROM users WHERE id = ? LIMIT 1");
+                                      $regQ->bind_param("i", $vRow["verified_by"]);
+                                      $regQ->execute();
+                                      $regRow = $regQ->get_result()->fetch_assoc();
+                                      $vb = $regRow ? trim($regRow["first_name"] . " " . $regRow["last_name"]) : "Registrar #" . $vRow["verified_by"];
+                                      $vd = date("m/d/y", strtotime($vRow["verified_at"]));
+                                    }
 
                                     $st = strtoupper($r["status"] ?? "PENDING");
                                 ?>

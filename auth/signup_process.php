@@ -110,5 +110,8 @@ if (!$stmt->execute()) {
   fail("Signup failed: " . $stmt->error);
 }
 
+$newUserId = $conn->insert_id;
+audit_log($conn, "INSERT", "users", $newUserId, "Account created via signup");
+
 header("Location: auth.php?signup=success");
 exit();

@@ -34,11 +34,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $stmt = $conn->prepare("INSERT INTO document_process (document_type, working_days, last_updated, updated_by) VALUES (?, ?, NOW(), ?)");
         $stmt->bind_param("ssi", $name, $processing_time, $registrarId);
         $stmt->execute();
+        $newDocId = $conn->insert_id;
+        audit_log($conn, "INSERT", "document_process", $newDocId, "Added document type: " . $name);
         $message = "Document added successfully.";
       } elseif ($action === "edit" && $id > 0) {
         $stmt = $conn->prepare("UPDATE document_process SET document_type=?, working_days=?, last_updated=NOW(), updated_by=? WHERE id=?");
         $stmt->bind_param("ssii", $name, $processing_time, $registrarId, $id);
         $stmt->execute();
+        audit_log($conn, "UPDATE", "document_process", $id, "Updated document type: " . $name);
         $message = "Document updated successfully.";
       }
     }

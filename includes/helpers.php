@@ -147,3 +147,25 @@ function add_log(mysqli $conn, int $request_id, string $msg): void {
     $st->bind_param("is", $request_id, $msg);
     $st->execute();
 }
+
+/**
+ * Insert a universal audit log entry.
+ * Captures the acting user, action type, affected table/record, and IP.
+ */
+function audit_log(
+    mysqli $conn,
+    string $action,
+    string $table_name,
+    ?int   $record_id = null,
+    string $details = ""
+): void {
+    $user_id = $_SESSION["user_id"] ?? null;
+    $ip = $_SERVER["REMOTE_ADDR"] ?? null;
+
+    $st = $conn->prepare("
+        INSERT INTO audit_logs (user_id, action, table_name, record_id, details, ip_address)
+        VALUES (?, ?, ?, ?, ?, ?)
+    ");
+    $st->bind_param("isisss", $user_id, $action, $table_name, $record_id, $details, $ip);
+    $st->execute();
+}

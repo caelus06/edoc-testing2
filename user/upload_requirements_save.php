@@ -126,6 +126,7 @@ for ($i = 0; $i < count($req_names); $i++) {
 
 // log
 add_log($conn, $request_id, "REQUIREMENTS UPLOADED");
+audit_log($conn, "INSERT", "request_files", $request_id, "Requirements uploaded for request #" . $request_id);
 
 // redirect back to track page
 header("Location: track.php?ref=" . urlencode($ref));

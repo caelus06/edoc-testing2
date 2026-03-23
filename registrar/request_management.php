@@ -257,7 +257,11 @@ function badgeClass($s){
                   $info->execute();
                   $iv = $info->get_result()->fetch_assoc();
                   if ($iv && $iv["verified_by"]) {
-                    $vb = "R1"; // if you want dynamic registrar code, we can map it later
+                    $regQ = $conn->prepare("SELECT first_name, last_name FROM users WHERE id = ? LIMIT 1");
+                    $regQ->bind_param("i", $iv["verified_by"]);
+                    $regQ->execute();
+                    $regRow = $regQ->get_result()->fetch_assoc();
+                    $vb = $regRow ? trim($regRow["first_name"] . " " . $regRow["last_name"]) : "Registrar #" . $iv["verified_by"];
                     $vd = date("m/d/y", strtotime($iv["verified_at"]));
                   }
 

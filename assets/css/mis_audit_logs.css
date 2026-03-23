@@ -303,6 +303,11 @@ tbody tr:hover{
   color:#4a5fd1;
 }
 
+.act-logout{
+  background:#f0f0f5;
+  color:#6b7280;
+}
+
 .act-role{
   background:#efe7ff;
   color:#8c3ff1;
