@@ -1,4 +1,9 @@
 <?php
+// PHPWord autoloader (lib/ — no Composer needed)
+if (file_exists(__DIR__ . '/../lib/autoload.php')) {
+    require_once __DIR__ . '/../lib/autoload.php';
+}
+
 /**
  * Centralized helpers for the E-Doc Document Management System.
  *
