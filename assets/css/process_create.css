@@ -1,0 +1,199 @@
+/* process_create.php — School Order split-screen UI */
+/* Builds on registrar_create_document.css (sidebar, topbar, etc.) */
+
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 8px 0 12px;
+}
+.page-header .title {
+    font-size: 18px;
+    font-weight: 900;
+}
+.btn-back {
+    font-size: 12px;
+    font-weight: 900;
+    color: #111;
+    text-decoration: none;
+    padding: 6px 14px;
+    border: 1px solid #cfcfd4;
+    border-radius: 6px;
+    background: #f7fafc;
+}
+.btn-back:hover {
+    background: #e6e6e6;
+}
+
+/* Student info bar */
+.info-bar {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    background: #fff;
+    border: 1px solid #dfe3ea;
+    border-radius: 8px;
+    padding: 10px 16px;
+    margin-bottom: 14px;
+    font-size: 12px;
+}
+.info-item b {
+    font-weight: 900;
+}
+
+/* Panel header row (title + OCR button) */
+.panel-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+.panel-header-row h2 {
+    margin: 0;
+}
+
+/* OCR button */
+.btn-ocr {
+    display: inline-block;
+    padding: 7px 16px;
+    background: #2c5a9e;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-weight: 900;
+    font-size: 11px;
+    text-decoration: none;
+    cursor: pointer;
+}
+.btn-ocr:hover {
+    background: #1e4278;
+}
+
+/* OCR status banners */
+.ocr-banner {
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 800;
+    margin-bottom: 14px;
+}
+.ocr-success {
+    background: #e8f5e9;
+    color: #1b5e20;
+    border: 1px solid #a5d6a7;
+}
+.ocr-error {
+    background: #fff3e0;
+    color: #e65100;
+    border: 1px solid #ffcc80;
+}
+
+/* Form fields */
+.form-group {
+    margin-bottom: 12px;
+}
+.form-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 900;
+    margin-bottom: 4px;
+    color: #111;
+}
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 9px 12px;
+    border-radius: 8px;
+    border: 2px solid #dfe3ea;
+    font-size: 12px;
+    font-family: inherit;
+    background: #fff;
+    outline: none;
+    transition: border-color 0.2s;
+}
+.form-group input:focus,
+.form-group textarea:focus {
+    border-color: #2c5a9e;
+}
+.form-group textarea {
+    resize: vertical;
+    min-height: 60px;
+}
+
+/* Confidence indicator borders */
+.form-group input.conf-high {
+    border-color: #2c7a3f;
+}
+.form-group input.conf-medium {
+    border-color: #b36a2b;
+}
+.form-group input.conf-low {
+    border-color: #d32f2f;
+}
+
+/* Field hints */
+.field-hint {
+    display: block;
+    font-size: 10px;
+    margin-top: 3px;
+    font-weight: 800;
+    color: #888;
+}
+.hint-high {
+    color: #2c7a3f;
+}
+.hint-medium {
+    color: #b36a2b;
+}
+.hint-low {
+    color: #d32f2f;
+}
+
+/* File selector */
+.file-selector {
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.file-selector label {
+    font-size: 12px;
+    font-weight: 900;
+    white-space: nowrap;
+}
+.file-selector select {
+    flex: 1;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 2px solid #111;
+    font-size: 11px;
+    font-weight: 800;
+    background: #fff;
+}
+
+/* Form actions */
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 14px;
+    margin-top: 18px;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .verify-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .info-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+}

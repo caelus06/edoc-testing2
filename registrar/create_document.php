@@ -202,6 +202,12 @@ function badgeClass($s){
                                     }
 
                                     $st = strtoupper($r["status"] ?? "PENDING");
+
+                                    // Check if an active School Order exists for this request
+                                    $soQ = $conn->prepare("SELECT id FROM school_orders WHERE request_id = ? AND status IN ('DRAFT','FINALIZED') LIMIT 1");
+                                    $soQ->bind_param("i", $r["id"]);
+                                    $soQ->execute();
+                                    $activeSO = $soQ->get_result()->fetch_assoc();
                                 ?>
                                 <tr>
                                     <td><input type="checkbox" class="row-check" value="<?= $r["id"] ?>"></td>
@@ -214,7 +220,11 @@ function badgeClass($s){
                                     <td><?= htmlspecialchars($vd) ?></td>
                                     <td><span class="badge <?= badgeClass($st) ?>">✓ <?= htmlspecialchars($st) ?></span></td>
                                     <td>
-                                        <a class="btn-verify" href="process_create.php?id=<?= (int)$r["id"] ?>" style="background: #27ae60; text-decoration: none; color: white; padding: 5px 10px; border-radius: 3px; font-size: 12px;">Create Document</a>
+                                        <?php if ($activeSO): ?>
+                                            <a class="btn-verify" href="download_so.php?id=<?= (int)$activeSO["id"] ?>" style="background: #2c5a9e; text-decoration: none; color: white; padding: 5px 10px; border-radius: 3px; font-size: 12px;">View Document</a>
+                                        <?php else: ?>
+                                            <a class="btn-verify" href="process_create.php?id=<?= (int)$r["id"] ?>" style="background: #27ae60; text-decoration: none; color: white; padding: 5px 10px; border-radius: 3px; font-size: 12px;">Create Document</a>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

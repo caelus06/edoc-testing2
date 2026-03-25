@@ -1,0 +1,179 @@
+<h2>Section 2 (Revised): Split-Screen UI — process_create.php</h2>
+<p class="subtitle">Matching the existing E-Doc design system: dark sidebar, topbar, verify-grid layout</p>
+
+<div class="mockup">
+  <div class="mockup-header">process_create.php — Matches existing registrar page layout</div>
+  <div class="mockup-body" style="padding: 0; overflow: hidden; font-family: Arial, sans-serif; background: #eef1f6;">
+
+    <!-- Layout: sidebar + main -->
+    <div style="display: flex; min-height: 540px;">
+
+      <!-- SIDEBAR (matching existing .sidebar) -->
+      <div style="width: 200px; background: #0a3a63; color: #fff; padding: 10px 8px; flex-shrink: 0;">
+        <div style="display: flex; gap: 8px; align-items: center; padding: 8px 6px 10px; border-bottom: 1px solid rgba(255,255,255,.12); margin-bottom: 8px;">
+          <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,.12); display: flex; align-items: center; justify-content: center; font-size: 14px;">👤</div>
+          <div>
+            <div style="font-weight: 900; font-size: 11px;">Registrar Name</div>
+            <div style="font-size: 9px; opacity: .9;">Registrar</div>
+          </div>
+        </div>
+        <div style="margin: 8px 6px 6px; font-size: 9px; font-weight: 900; letter-spacing: .4px; opacity: .95;">MODULES</div>
+        <div style="display: flex; flex-direction: column; gap: 3px;">
+          <div style="display: flex; align-items: center; gap: 6px; padding: 6px 6px; border-radius: 6px; font-weight: 800; font-size: 10px; opacity: .95; text-decoration: none; color: #fff;">🏠 Dashboard</div>
+          <div style="display: flex; align-items: center; gap: 6px; padding: 6px 6px; border-radius: 6px; font-weight: 800; font-size: 10px; opacity: .95;">📝 New Document</div>
+          <div style="display: flex; align-items: center; gap: 6px; padding: 6px 6px; border-radius: 6px; font-weight: 800; font-size: 10px; opacity: .95;">🔎 Request Mgmt</div>
+          <div style="display: flex; align-items: center; gap: 6px; padding: 6px 6px; border-radius: 6px; font-weight: 800; font-size: 10px; opacity: .95;">📄 Document Mgmt</div>
+          <div style="display: flex; align-items: center; gap: 6px; padding: 6px 6px; border-radius: 6px; background: #0b2e4f; font-weight: 800; font-size: 10px; opacity: .95;">➕ Create Document</div>
+        </div>
+      </div>
+
+      <!-- MAIN AREA -->
+      <div style="flex: 1; display: flex; flex-direction: column;">
+
+        <!-- TOPBAR (matching existing .topbar) -->
+        <div style="background: #fff; border-bottom: 2px solid #111; padding: 8px 12px; display: flex; align-items: center; gap: 8px;">
+          <div style="width: 32px; height: 32px; border-radius: 8px; border: 1px solid #dfe3ea; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer;">≡</div>
+          <div style="display: flex; align-items: center; gap: 6px; font-weight: 900; font-size: 12px;">
+            <div style="width: 28px; height: 28px; border-radius: 6px; border: 1px solid #dfe3ea; background: #fafafa; display: flex; align-items: center; justify-content: center; font-size: 10px;">📘</div>
+            E-Doc Document Requesting System
+          </div>
+        </div>
+
+        <!-- CONTAINER (matching existing .container) -->
+        <div style="max-width: 1200px; margin: 0 auto; padding: 12px; width: 100%;">
+
+          <!-- Page title + back link -->
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+            <div style="font-size: 16px; font-weight: 900;">Create School Order</div>
+            <a href="#" style="font-size: 11px; font-weight: 900; color: #0b1f44; text-decoration: none;">← Back to Requests</a>
+          </div>
+
+          <!-- Student info bar (compact) -->
+          <div style="background: #fff; border: 1px solid #111; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; display: flex; gap: 24px; flex-wrap: wrap; font-size: 11px;">
+            <div><span style="font-weight: 900;">Ref No:</span> REF-2026-0042</div>
+            <div><span style="font-weight: 900;">Student:</span> DELA CRUZ, JUAN PEDRO</div>
+            <div><span style="font-weight: 900;">ID:</span> 2022-10042</div>
+            <div><span style="font-weight: 900;">Type:</span> TRANSCRIPT OF RECORDS</div>
+            <div><span style="display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 6px; background: #2f7f9e; color: #fff; font-weight: 900; font-size: 10px;">✓ VERIFIED</span></div>
+          </div>
+
+          <!-- SPLIT GRID (uses existing .verify-grid pattern: grid-template-columns) -->
+          <div style="display: grid; grid-template-columns: 1.05fr 1.35fr; gap: 14px; align-items: start;">
+
+            <!-- LEFT PANEL: Source Document (matching .panel style) -->
+            <div style="background: #fff; border: 1px solid #111; border-radius: 12px; padding: 14px; box-shadow: 0 8px 18px rgba(0,0,0,.06);">
+              <h2 style="margin: 0 0 8px; font-size: 14px; font-weight: 900;">Source Document</h2>
+
+              <!-- File selector -->
+              <div style="margin-bottom: 8px;">
+                <select style="width: 100%; height: 26px; border: 1px solid #cfcfd4; background: #e6e6e6; padding: 0 8px; font-size: 11px; outline: none; border-radius: 4px;">
+                  <option>transcript_juan_delacruz.pdf</option>
+                  <option>request_form_signed.pdf</option>
+                </select>
+              </div>
+
+              <!-- PDF Preview area (matching .preview-box) -->
+              <div style="background: #fff; border: 1px solid #bdbfc6; border-radius: 12px; padding: 12px; min-height: 320px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                <div style="text-align: center; color: #888;">
+                  <div style="font-size: 40px; margin-bottom: 8px;">📋</div>
+                  <div style="font-size: 12px; font-weight: 900;">PDF Viewer (iframe)</div>
+                  <div style="font-size: 10px; margin-top: 4px; color: #aaa;">Scrollable, zoomable</div>
+                </div>
+              </div>
+
+              <!-- Nav arrows (matching existing .nav-arrows) -->
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+                <span style="font-size: 20px; font-weight: 900; cursor: pointer;">◄</span>
+                <span style="font-size: 11px; font-weight: 900;">Page 1 of 3</span>
+                <span style="font-size: 20px; font-weight: 900; cursor: pointer;">►</span>
+              </div>
+            </div>
+
+            <!-- RIGHT PANEL: OCR Data Form (matching .panel style) -->
+            <div style="background: #fff; border: 1px solid #111; border-radius: 12px; padding: 14px; box-shadow: 0 8px 18px rgba(0,0,0,.06);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h2 style="margin: 0; font-size: 14px; font-weight: 900;">Extracted Data</h2>
+                <button style="height: 26px; padding: 0 14px; border: 1px solid #cfcfd4; background: #d9d9d9; font-weight: 900; font-size: 11px; cursor: pointer; border-radius: 4px;">Re-run OCR</button>
+              </div>
+
+              <!-- OCR status notice -->
+              <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 8px 10px; margin-bottom: 12px; font-size: 11px; font-weight: 900; color: #856404;">
+                ⚠ OCR extracted 5 fields — please review for accuracy
+              </div>
+
+              <!-- Form fields (matching existing filter/input styling) -->
+              <div style="display: flex; flex-direction: column; gap: 10px;">
+
+                <div>
+                  <div style="font-size: 10px; font-weight: 900; margin-bottom: 3px; color: #333;">SO NUMBER</div>
+                  <input type="text" value="SO-2026-0001" style="width: 100%; height: 30px; border: 1px solid #cfcfd4; background: #e6e6e6; padding: 0 8px; font-size: 11px; outline: none; border-radius: 4px; box-sizing: border-box;" />
+                  <div style="font-size: 9px; color: #888; margin-top: 2px;">Auto-generated — editable</div>
+                </div>
+
+                <div>
+                  <div style="font-size: 10px; font-weight: 900; margin-bottom: 3px; color: #333;">STUDENT NAME</div>
+                  <input type="text" value="DELA CRUZ, JUAN PEDRO" style="width: 100%; height: 30px; border: 2px solid #2c7a3f; background: #f0fff0; padding: 0 8px; font-size: 11px; outline: none; border-radius: 4px; box-sizing: border-box;" />
+                  <div style="font-size: 9px; color: #2c7a3f; font-weight: 900; margin-top: 2px;">✓ High confidence</div>
+                </div>
+
+                <div>
+                  <div style="font-size: 10px; font-weight: 900; margin-bottom: 3px; color: #333;">STUDENT ID</div>
+                  <input type="text" value="2022-10042" style="width: 100%; height: 30px; border: 2px solid #2c7a3f; background: #f0fff0; padding: 0 8px; font-size: 11px; outline: none; border-radius: 4px; box-sizing: border-box;" />
+                  <div style="font-size: 9px; color: #2c7a3f; font-weight: 900; margin-top: 2px;">✓ High confidence</div>
+                </div>
+
+                <div>
+                  <div style="font-size: 10px; font-weight: 900; margin-bottom: 3px; color: #333;">COURSE / PROGRAM</div>
+                  <input type="text" value="BS Information Technol0gy" style="width: 100%; height: 30px; border: 2px solid #b36a2b; background: #fff8f0; padding: 0 8px; font-size: 11px; outline: none; border-radius: 4px; box-sizing: border-box;" />
+                  <div style="font-size: 9px; color: #b36a2b; font-weight: 900; margin-top: 2px;">⚠ Low confidence — verify ("0" may be "o")</div>
+                </div>
+
+                <div>
+                  <div style="font-size: 10px; font-weight: 900; margin-bottom: 3px; color: #333;">DATE OF GRADUATION</div>
+                  <input type="text" value="March 2026" style="width: 100%; height: 30px; border: 1px solid #cfcfd4; background: #e6e6e6; padding: 0 8px; font-size: 11px; outline: none; border-radius: 4px; box-sizing: border-box;" />
+                </div>
+
+                <div>
+                  <div style="font-size: 10px; font-weight: 900; margin-bottom: 3px; color: #333;">DATE ISSUED</div>
+                  <input type="date" value="2026-03-24" style="width: 100%; height: 30px; border: 1px solid #cfcfd4; background: #e6e6e6; padding: 0 8px; font-size: 11px; outline: none; border-radius: 4px; box-sizing: border-box;" />
+                </div>
+
+                <div>
+                  <div style="font-size: 10px; font-weight: 900; margin-bottom: 3px; color: #333;">REGISTRAR SIGNATURE NAME</div>
+                  <input type="text" value="Dr. Maria Santos" style="width: 100%; height: 30px; border: 1px solid #cfcfd4; background: #e6e6e6; padding: 0 8px; font-size: 11px; outline: none; border-radius: 4px; box-sizing: border-box;" />
+                </div>
+              </div>
+
+              <!-- Action buttons (matching existing .form-actions / .btn-save / .btn-cancel) -->
+              <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 14px;">
+                <a href="#" style="background: #0b1f44; color: #fff; border: none; padding: 8px 20px; border-radius: 6px; font-weight: 900; font-size: 11px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center;">Cancel</a>
+                <button style="background: #141a3a; color: #fff; border: none; padding: 8px 20px; border-radius: 6px; font-weight: 900; font-size: 11px; cursor: pointer;">Preview SO</button>
+                <button style="background: #1a6b2a; color: #fff; border: none; padding: 8px 20px; border-radius: 6px; font-weight: 900; font-size: 11px; cursor: pointer;">Confirm & Generate</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Footer (matching existing .footer-bar) -->
+        <div style="height: 40px; background: #062a44; margin-top: auto;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- What changed from v1 -->
+<div style="margin-top: 24px; padding: 16px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #0a3a63;">
+  <h3 style="margin: 0 0 8px;">What's different from v1</h3>
+  <ul style="margin: 0; padding-left: 20px; line-height: 1.8; font-size: 13px;">
+    <li><strong>Sidebar</strong> — Same dark navy sidebar (#0a3a63) with identical nav structure</li>
+    <li><strong>Topbar</strong> — Same hamburger + logo + brand bar with border-bottom</li>
+    <li><strong>Grid layout</strong> — Uses the existing <code>.verify-grid</code> pattern (1.05fr / 1.35fr) already in the CSS</li>
+    <li><strong>Panels</strong> — Reuses <code>.panel</code> style: white bg, 1px #111 border, 12px radius, shadow</li>
+    <li><strong>Inputs</strong> — Same #e6e6e6 background, #cfcfd4 border, 11px font size</li>
+    <li><strong>Buttons</strong> — Reuses <code>.btn-save</code> (green), <code>.btn-cancel</code> (navy), <code>.btn-dark</code> styles</li>
+    <li><strong>PDF viewer</strong> — Uses existing <code>.preview-box</code> pattern with nav arrows</li>
+    <li><strong>Badges</strong> — Same badge styling for status display</li>
+    <li><strong>Student info</strong> — Compact bar instead of cluttering the top, keeps context visible</li>
+  </ul>
+</div>
