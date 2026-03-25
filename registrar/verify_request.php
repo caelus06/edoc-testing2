@@ -25,9 +25,8 @@ function normalize_title_type(string $docType, string $titleType): string {
   $t = preg_replace('/\s+/', ' ', $t);
 
   if ($doc === "TRANSCRIPT OF RECORDS") {
+    if (str_contains($t, "NOT") || str_contains($t, "BACHELOR") || str_contains($t, "UNDERGRAD")) return "Not-Graduate";
     if (str_contains($t, "GRAD")) return "Graduate";
-    if (str_contains($t, "NOT"))  return "Not-Graduate";
-    if (str_contains($t, "BACHELOR") || str_contains($t, "UNDERGRAD")) return "Not-Graduate";
   }
 
   if ($doc === "DIPLOMA") {
