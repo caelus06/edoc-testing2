@@ -8,6 +8,7 @@ $signupSuccess = (isset($_GET["signup"]) && $_GET["signup"] === "success");
   <meta charset="UTF-8">
   <title>E-Doc Auth</title>
   <link rel="stylesheet" href="../assets/css/auth.css">
+  <?php include __DIR__ . "/../includes/swal_header.php"; ?>
 </head>
 <body>
 

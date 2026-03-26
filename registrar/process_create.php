@@ -44,14 +44,18 @@ $st->bind_param("i", $request_id);
 $st->execute();
 $reqRow = $st->get_result()->fetch_assoc();
 if (!$reqRow) {
-    die("Request not found.");
+    swal_flash("error", "Error", "Request not found.");
+    header("Location: create_document.php");
+    exit();
 }
 
 /* Validate status — only VERIFIED/APPROVED/PROCESSING allowed */
 $allowedStatuses = [STATUS_VERIFIED, STATUS_APPROVED, STATUS_PROCESSING];
 $reqStatus = strtoupper(trim($reqRow["status"] ?? ""));
 if (!in_array($reqStatus, $allowedStatuses, true)) {
-    die("Cannot create a School Order for a request with status: " . htmlspecialchars($reqStatus) . ". Request must be VERIFIED, APPROVED, or PROCESSING.");
+    swal_flash("error", "Error", "Cannot create a School Order for a request with status: " . htmlspecialchars($reqStatus) . ". Request must be VERIFIED, APPROVED, or PROCESSING.");
+    header("Location: create_document.php");
+    exit();
 }
 
 /* Build student info */
@@ -178,6 +182,7 @@ function badgeClass($s) {
     <title>Create School Order</title>
     <link rel="stylesheet" href="../assets/css/registrar_create_document.css">
     <link rel="stylesheet" href="../assets/css/process_create.css">
+    <?php include __DIR__ . "/../includes/swal_header.php"; ?>
 </head>
 <body>
 
@@ -204,7 +209,7 @@ function badgeClass($s) {
 
         <div class="sb-section-title">SETTINGS</div>
         <nav class="sb-nav">
-            <a class="sb-item" href="../auth/logout.php"><span class="sb-icon">&#x238B;</span>Logout</a>
+            <a class="sb-item" href="#" onclick="event.preventDefault(); swalConfirm('Logout', 'Are you sure you want to log out?', 'Yes, log out', function(){ window.location='../auth/logout.php'; })"><span class="sb-icon">&#x238B;</span>Logout</a>
         </nav>
     </aside>
 

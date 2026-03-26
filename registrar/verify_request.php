@@ -25,9 +25,8 @@ function normalize_title_type(string $docType, string $titleType): string {
   $t = preg_replace('/\s+/', ' ', $t);
 
   if ($doc === "TRANSCRIPT OF RECORDS") {
+    if (str_contains($t, "NOT") || str_contains($t, "BACHELOR") || str_contains($t, "UNDERGRAD")) return "Not-Graduate";
     if (str_contains($t, "GRAD")) return "Graduate";
-    if (str_contains($t, "NOT"))  return "Not-Graduate";
-    if (str_contains($t, "BACHELOR") || str_contains($t, "UNDERGRAD")) return "Not-Graduate";
   }
 
   if ($doc === "DIPLOMA") {
@@ -81,7 +80,11 @@ function normalize_app_status(string $raw): string {
 $request_id = (int)($_GET["id"] ?? ($_POST["request_id"] ?? 0));
 $rk = trim($_GET["rk"] ?? ($_POST["rk"] ?? ""));
 
-if ($request_id <= 0) die("Missing request id.");
+if ($request_id <= 0) {
+  swal_flash("error", "Error", "Missing request id.");
+  header("Location: request_management.php");
+  exit();
+}
 if ($rk === "") $rk = "valid_id";
 
 // Special key for scanned document
@@ -104,7 +107,11 @@ $st = $conn->prepare("
 $st->bind_param("i", $request_id);
 $st->execute();
 $reqRow = $st->get_result()->fetch_assoc();
-if (!$reqRow) die("Request not found.");
+if (!$reqRow) {
+  swal_flash("error", "Error", "Request not found.");
+  header("Location: request_management.php");
+  exit();
+}
 
 $doc_type_raw   = (string)($reqRow["document_type"] ?? "");
 $title_type_raw = (string)($reqRow["title_type"] ?? "");
@@ -290,6 +297,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 audit_log($conn, "UPDATE", "requests", $request_id, "Application status updated to " . $app_status);
             }
         }
+        swal_flash("success", "Saved", "Changes saved successfully.");
         redirect_back($request_id, $rk);
     }
 
@@ -300,7 +308,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $st->execute();
     $row = $st->get_result()->fetch_assoc();
 
-    if (!$row) die("No file found for this item. Nothing to delete.");
+    if (!$row) {
+      swal_flash("error", "Error", "No file found for this item. Nothing to delete.");
+      redirect_back($request_id, $rk);
+    }
 
     // Optional lock: lock delete if verified (applies even to scanned_document)
     // Added a "lock" Mechanism so that if you change a status (for example, from Verified back to Pending), 
@@ -318,13 +329,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     add_log($conn, $request_id, "Registrar Update: Removed " . ucfirst($rk));
     audit_log($conn, "DELETE", "request_files", $row["id"], "Removed file: " . ucfirst($rk));
+    swal_flash("success", "Deleted", "File deleted successfully.");
     redirect_back($request_id, $rk);
   }
 
   // UPLOAD (registrar overwrites preview file)
   if ($action === "upload") {
     if (!isset($_FILES["req_file"]) || $_FILES["req_file"]["error"] !== UPLOAD_ERR_OK) {
-      die("No file uploaded.");
+      swal_flash("error", "Error", "No file uploaded.");
+      redirect_back($request_id, $rk);
     }
 
     $chk = $conn->prepare("SELECT id, file_path, verified_at FROM request_files WHERE request_id=? AND requirement_key=? LIMIT 1");
@@ -333,11 +346,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $ex = $chk->get_result()->fetch_assoc();
 
     // Optional lock: lock overwrite if verified
-    if ($ex && !empty($ex["verified_at"])) die("This file is VERIFIED. Upload is locked.");
+    if ($ex && !empty($ex["verified_at"])) {
+      swal_flash("warning", "Locked", "This file is VERIFIED. Upload is locked.");
+      redirect_back($request_id, $rk);
+    }
 
     $tmp = $_FILES["req_file"]["tmp_name"];
     $size = (int)$_FILES["req_file"]["size"];
-    if ($size > 15 * 1024 * 1024) die("Max 15MB only.");
+    if ($size > 15 * 1024 * 1024) {
+      swal_flash("error", "Error", "Max 15MB only.");
+      redirect_back($request_id, $rk);
+    }
 
     $finfo = finfo_open(FILEINFO_MIME_TYPE);
     $mime = finfo_file($finfo, $tmp);
@@ -349,7 +368,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       "image/webp" => "webp",
       "application/pdf" => "pdf"
     ];
-    if (!isset($allowed[$mime])) die("Only JPG/PNG/WebP/PDF allowed.");
+    if (!isset($allowed[$mime])) {
+      swal_flash("error", "Error", "Only JPG/PNG/WebP/PDF allowed.");
+      redirect_back($request_id, $rk);
+    }
 
     $ext = $allowed[$mime];
     $dir = "../uploads/request_files/" . $request_id;
@@ -358,7 +380,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $fname = $rk . "_" . bin2hex(random_bytes(8)) . "." . $ext;
     $dest = $dir . "/" . $fname;
 
-    if (!move_uploaded_file($tmp, $dest)) die("Upload failed.");
+    if (!move_uploaded_file($tmp, $dest)) {
+      swal_flash("error", "Error", "Upload failed.");
+      redirect_back($request_id, $rk);
+    }
     $relative = str_replace("../", "", $dest);
 
     // requirement_name
@@ -398,10 +423,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     add_log($conn, $request_id, "Registrar Update: " . ucfirst($rk) . " uploaded");
     audit_log($conn, "INSERT", "request_files", $request_id, "Uploaded file: " . ucfirst($rk));
+    swal_flash("success", "Uploaded", "File uploaded successfully.");
     redirect_back($request_id, $rk);
   }
 
-  die("Invalid action.");
+  swal_flash("error", "Error", "Invalid action.");
+  redirect_back($request_id, $rk);
   
 }
 ?>
@@ -411,6 +438,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   <meta charset="UTF-8">
   <title>Verify Request</title>
   <link rel="stylesheet" href="../assets/css/verify_request.css">
+  <?php include __DIR__ . "/../includes/swal_header.php"; ?>
   <style>
     /* safe additions (won't break your existing css) */
     .preview-pdf {
@@ -572,12 +600,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     <div class="right-actions">
       <!-- DELETE -->
-      <form method="POST" action="verify_request.php" class="mini-form">
+      <form id="deleteFileForm" method="POST" action="verify_request.php" class="mini-form">
         <?= csrf_field() ?>
         <input type="hidden" name="request_id" value="<?= (int)$request_id ?>">
         <input type="hidden" name="rk" value="<?= h($rk) ?>">
         <input type="hidden" name="action" value="delete">
-        <button type="submit" class="btn-delete" onclick="return confirm('Delete this file?');">DELETE</button>
+        <button type="button" class="btn-delete" onclick="swalConfirmDanger('Delete File?', 'This file will be permanently removed.', 'Yes, delete', function(){ document.getElementById('deleteFileForm').submit(); })">DELETE</button>
       </form>
 
       <!-- UPLOAD -->

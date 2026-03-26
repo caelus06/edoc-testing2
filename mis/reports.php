@@ -193,6 +193,7 @@ $excelQuery = http_build_query([
   <meta charset="UTF-8">
   <title>MIS Reports</title>
   <link rel="stylesheet" href="../assets/css/mis_reports.css">
+  <?php include __DIR__ . "/../includes/swal_header.php"; ?>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -220,7 +221,7 @@ $excelQuery = http_build_query([
 
     <div class="sb-section-title">SETTINGS</div>
     <nav class="sb-nav">
-      <a class="sb-item" href="../auth/logout.php"><span class="sb-icon">⎋</span>Logout</a>
+      <a class="sb-item" href="#" onclick="event.preventDefault(); swalConfirm('Logout', 'Are you sure you want to log out?', 'Yes, log out', function(){ window.location='../auth/logout.php'; })"><span class="sb-icon">⎋</span>Logout</a>
     </nav>
   </aside>
 

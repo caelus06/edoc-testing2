@@ -149,6 +149,7 @@ function actionBadgeClass($action) {
   <meta charset="UTF-8">
   <title>Audit Logs</title>
   <link rel="stylesheet" href="../assets/css/mis_audit_logs.css">
+  <?php include __DIR__ . "/../includes/swal_header.php"; ?>
 </head>
 <body>
 
@@ -175,7 +176,7 @@ function actionBadgeClass($action) {
 
     <div class="sb-section-title">SETTINGS</div>
     <nav class="sb-nav">
-      <a class="sb-item" href="../auth/logout.php"><span class="sb-icon">⎋</span>Logout</a>
+      <a class="sb-item" href="#" onclick="event.preventDefault(); swalConfirm('Logout', 'Are you sure you want to log out?', 'Yes, log out', function(){ window.location='../auth/logout.php'; })"><span class="sb-icon">⎋</span>Logout</a>
     </nav>
   </aside>
 

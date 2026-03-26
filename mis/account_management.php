@@ -105,7 +105,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["action"] ?? "") === "delet
         $lg->execute();
       }
 
-      header("Location: account_management.php?edit=" . $user_id . "&msg=deleted");
+      swal_flash("success", "Deleted", "ID deleted and user notified successfully.");
+      header("Location: account_management.php?edit=" . $user_id);
       exit();
     }
   }
@@ -197,7 +198,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["action"] ?? "") === "uploa
             $lg->execute();
           }
 
-          header("Location: account_management.php?edit=" . $user_id . "&msg=uploaded");
+          swal_flash("success", "Uploaded", "ID uploaded successfully.");
+          header("Location: account_management.php?edit=" . $user_id);
           exit();
         }
       }
@@ -265,7 +267,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["action"] ?? "") === "save_
 
     if ($up->execute()) {
       audit_log($conn, "UPDATE", "users", $user_id, "MIS updated user account");
-      header("Location: account_management.php?edit=" . $user_id . "&msg=saved");
+      swal_flash("success", "Saved", "Changes saved successfully.");
+      header("Location: account_management.php?edit=" . $user_id);
       exit();
     } else {
       $flash = "Failed to update user.";
@@ -509,6 +512,7 @@ if (isset($_GET["msg"])) {
   <meta charset="UTF-8">
   <title>MIS Account Management</title>
   <link rel="stylesheet" href="../assets/css/mis_account_management.css">
+  <?php include __DIR__ . "/../includes/swal_header.php"; ?>
 </head>
 <body>
 
@@ -535,7 +539,7 @@ if (isset($_GET["msg"])) {
 
     <div class="sb-section-title">SETTINGS</div>
     <nav class="sb-nav">
-      <a class="sb-item" href="../auth/logout.php"><span class="sb-icon">⎋</span>Logout</a>
+      <a class="sb-item" href="#" onclick="event.preventDefault(); swalConfirm('Logout', 'Are you sure you want to log out?', 'Yes, log out', function(){ window.location='../auth/logout.php'; })"><span class="sb-icon">⎋</span>Logout</a>
     </nav>
   </aside>
 
@@ -903,17 +907,6 @@ if (isset($_GET["msg"])) {
 </div>
 <?php endif; ?>
 
-<?php if (!empty($_GET['msg'])): ?>
-  <div class="toast show" id="toastMessage">
-    <?php
-      if ($_GET['msg'] === 'saved') echo 'Changes saved successfully.';
-      elseif ($_GET['msg'] === 'uploaded') echo 'ID uploaded successfully.';
-      elseif ($_GET['msg'] === 'deleted') echo 'ID deleted and user notified successfully.';
-      else echo 'Action completed successfully.';
-    ?>
-  </div>
-<?php endif; ?>
-
 <div class="footer-bar"></div>
 
 <script>
@@ -1001,12 +994,6 @@ function goToIdSlide(index){
 
 syncDeleteIdType();
 
-setTimeout(() => {
-  const toast = document.getElementById('toastMessage');
-  if (toast) {
-    toast.classList.remove('show');
-  }
-}, 2500);
 </script>
 
 </body>

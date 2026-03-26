@@ -62,7 +62,11 @@ if ($ref !== "") {
   $stmt->execute();
   $req = $stmt->get_result()->fetch_assoc();
 
-  if (!$req) die("Request not found or not yours.");
+  if (!$req) {
+    swal_flash("error", "Error", "Request not found or not yours.");
+    header("Location: dashboard.php");
+    exit();
+  }
 
   $request_id = (int)$req["id"];
   $document_type = $req["document_type"];
@@ -86,7 +90,11 @@ if ($ref !== "") {
   $stmt->execute();
   $req = $stmt->get_result()->fetch_assoc();
 
-  if (!$req) die("No request found for this document type. Please create a request first.");
+  if (!$req) {
+    swal_flash("error", "Error", "No request found for this document type. Please create a request first.");
+    header("Location: upload_requirements.php");
+    exit();
+  }
 
   $request_id = (int)$req["id"];
   $title_type = $req["title_type"];
@@ -260,6 +268,7 @@ if ($badgeCount > 99) $badgeCount = 99;
   <meta charset="UTF-8">
   <title>Upload Requirements</title>
   <link rel="stylesheet" href="../assets/css/user_upload_requirements_upload.css">
+  <?php include __DIR__ . "/../includes/swal_header.php"; ?>
 </head>
 <body>
 
@@ -276,7 +285,7 @@ if ($badgeCount > 99) $badgeCount = 99;
     </span>
 
     <div class="icon-btn" title="Account"><a href="profile.php">👤</a></div>
-    <button class="icon-btn" title="Logout" id="logoutBtn">⎋</button>
+    <button class="icon-btn" title="Logout" onclick="swalConfirm('Logout', 'Are you sure you want to log out?', 'Yes, log out', function(){ window.location='../auth/logout.php'; })">⎋</button>
   </div>
 </header>
 
@@ -437,19 +446,6 @@ if ($badgeCount > 99) $badgeCount = 99;
   </div>
 </div>
 
-<!-- LOGOUT CONFIRMATION MODAL -->
-<div class="modal-backdrop" id="logoutBackdrop">
-  <div class="modal" role="dialog" aria-modal="true" style="max-width: 400px;">
-    <div class="logout-content">
-      <h3>Are you sure you want to log out?</h3>
-      <p>You will need to sign in again to access your account.</p>
-      <div class="logout-actions">
-        <button class="btn-cancel" id="logoutCancel">Cancel</button>
-        <a href="../auth/logout.php" class="btn-confirm">Log Out</a>
-      </div>
-    </div>
-  </div>
-</div>
 
 <script>
   const notifBtn = document.getElementById("notifBtn");
@@ -480,24 +476,10 @@ if ($badgeCount > 99) $badgeCount = 99;
     if (e.target === backdrop) closeNotif();
   });
 
-  // Logout Logic
-  const logoutBtn = document.getElementById("logoutBtn");
-  const logoutBackdrop = document.getElementById("logoutBackdrop");
-  const logoutCancel = document.getElementById("logoutCancel");
-
-  logoutBtn?.addEventListener("click", () => logoutBackdrop.style.display = "flex");
-  logoutCancel?.addEventListener("click", () => logoutBackdrop.style.display = "none");
-
-  // General Modal Logic
-  window.addEventListener("click", (e) => {
-    if (e.target === backdrop) backdrop.style.display = "none";
-    if (e.target === logoutBackdrop) logoutBackdrop.style.display = "none";
-  });
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       backdrop.style.display = "none";
-      logoutBackdrop.style.display = "none";
     }
   });
 </script>

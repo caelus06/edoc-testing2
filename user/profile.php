@@ -18,7 +18,9 @@ $stmt->execute();
 $u = $stmt->get_result()->fetch_assoc();
 
 if (!$u) {
-  die("User not found.");
+  swal_flash("error", "Error", "User not found.");
+  header("Location: dashboard.php");
+  exit();
 }
 
 // Image paths (empty string if missing)
@@ -29,27 +31,23 @@ $backImg  = !empty($u["id_back_path"])  ? "../" . $u["id_back_path"]  : "";
 $status    = strtoupper($u["verification_status"] ?? "PENDING");
 $badgeText = ($status === "VERIFIED") ? "VERIFIED" : (($status === "RESUBMIT") ? "RESUBMIT" : "PENDING");
 
-// Flash messages from redirects
-$flashMsg  = "";
-$flashType = "";
+// Flash messages from redirects (legacy query-string based — convert to swal_flash)
 if (isset($_GET["msg"])) {
-  $flashType = "success";
-  if ($_GET["msg"] === "uploaded") $flashMsg = "File uploaded successfully.";
-  if ($_GET["msg"] === "deleted")  $flashMsg = "File deleted successfully.";
+  if ($_GET["msg"] === "uploaded") swal_flash("success", "Uploaded", "File uploaded successfully.");
+  if ($_GET["msg"] === "deleted")  swal_flash("success", "Deleted", "File deleted successfully.");
 }
 if (isset($_GET["saved"])) {
-  $flashMsg  = "Profile saved successfully.";
-  $flashType = "success";
+  swal_flash("success", "Saved", "Profile saved successfully.");
 }
 if (isset($_GET["error"])) {
-  $flashType = "error";
-  switch ($_GET["error"]) {
-    case "upload":     $flashMsg = "File upload failed. Please try again."; break;
-    case "size":       $flashMsg = "File is too large. Maximum size is 15 MB."; break;
-    case "filetype":   $flashMsg = "Invalid file type. Only JPG, PNG, and WEBP are accepted."; break;
-    case "move":       $flashMsg = "Server error moving file. Please try again."; break;
-    default:           $flashMsg = "An error occurred."; break;
-  }
+  $errMsg = match ($_GET["error"]) {
+    "upload"   => "File upload failed. Please try again.",
+    "size"     => "File is too large. Maximum size is 15 MB.",
+    "filetype" => "Invalid file type. Only JPG, PNG, and WEBP are accepted.",
+    "move"     => "Server error moving file. Please try again.",
+    default    => "An error occurred.",
+  };
+  swal_flash("error", "Error", $errMsg);
 }
 
 $initialStep = max(0, min(2, (int)($_GET["step"] ?? 0)));
@@ -60,12 +58,10 @@ $initialStep = max(0, min(2, (int)($_GET["step"] ?? 0)));
   <meta charset="UTF-8" />
   <title>Profile</title>
   <link rel="stylesheet" href="../assets/css/profile.css">
+  <?php include __DIR__ . "/../includes/swal_header.php"; ?>
 </head>
 <body>
 
-<?php if ($flashMsg): ?>
-  <div class="flash-msg flash-<?= $flashType ?>"><?= h($flashMsg) ?></div>
-<?php endif; ?>
 
 <div class="wrapper">
   <div class="card">
@@ -231,16 +227,19 @@ function doDelete() {
   var src  = getImgSrc();
 
   if (!src) {
-    alert("No image to delete.");
+    swalWarning("No Image", "No image to delete.");
     return;
   }
 
-  if (!confirm("Are you sure you want to delete this " + steps[step].title + "?")) {
-    return;
-  }
-
-  document.getElementById("deleteType").value = type;
-  document.getElementById("deleteForm").submit();
+  swalConfirmDanger(
+    "Delete " + steps[step].title + "?",
+    "Are you sure you want to delete this image? This cannot be undone.",
+    "Yes, delete",
+    function() {
+      document.getElementById("deleteType").value = type;
+      document.getElementById("deleteForm").submit();
+    }
+  );
 }
 
 function enableEdit(field) {
@@ -255,12 +254,6 @@ function enableEdit(field) {
 
 renderStep();
 
-// auto-dismiss flash
-var flash = document.querySelector(".flash-msg");
-if (flash) {
-  setTimeout(function() { flash.style.opacity = "0"; }, 3000);
-  setTimeout(function() { flash.remove(); }, 3500);
-}
 </script>
 </body>
 </html>

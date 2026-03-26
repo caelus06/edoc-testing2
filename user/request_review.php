@@ -87,6 +87,7 @@ if ($badgeCount > 99) $badgeCount = 99;
   <meta charset="UTF-8" />
   <title>Request Document - Review</title>
   <link rel="stylesheet" href="../assets/css/user_request_review.css">
+  <?php include __DIR__ . "/../includes/swal_header.php"; ?>
 </head>
 <body>
 
@@ -107,7 +108,7 @@ if ($badgeCount > 99) $badgeCount = 99;
     </span>
 
     <div class="icon-btn" title="Account"><a href="profile.php">👤</a></div>
-    <button class="icon-btn" title="Logout" id="logoutBtn" style="background:none; border:none; cursor:pointer;">⎋</button>
+    <button class="icon-btn" title="Logout" style="background:none; border:none; cursor:pointer;" onclick="swalConfirm('Logout', 'Are you sure you want to log out?', 'Yes, log out', function(){ window.location='../auth/logout.php'; })">⎋</button>
   </div>
 </header>
 
@@ -184,19 +185,6 @@ if ($badgeCount > 99) $badgeCount = 99;
   </div>
 </div>
 
-<!-- LOGOUT CONFIRMATION MODAL -->
-<div class="modal-backdrop" id="logoutBackdrop">
-  <div class="modal" role="dialog" aria-modal="true" style="max-width: 400px;">
-    <div class="logout-content">
-      <h3>Are you sure you want to log out?</h3>
-      <p>You will need to sign in again to access your account.</p>
-    <div class="logout-actions">
-      <button class="btn-cancel" id="logoutCancel">Cancel</button>
-      <a href="../auth/logout.php" class="btn-confirm">Log Out</a>
-    </div>
-    </div>
-  </div>
-</div>
 
 <script>
   const notifBtn = document.getElementById("notifBtn");
@@ -231,26 +219,6 @@ if ($badgeCount > 99) $badgeCount = 99;
     if (e.key === "Escape") closeNotif();
   });
 
-  // Logout Logic
-  const logoutBtn = document.getElementById("logoutBtn");
-  const logoutBackdrop = document.getElementById("logoutBackdrop");
-  const logoutCancel = document.getElementById("logoutCancel");
-
-  logoutBtn?.addEventListener("click", () => logoutBackdrop.style.display = "flex");
-  logoutCancel?.addEventListener("click", () => logoutBackdrop.style.display = "none");
-
-  // General Modal Logic
-  window.addEventListener("click", (e) => {
-    if (e.target === notifBackdrop) notifBackdrop.style.display = "none";
-    if (e.target === logoutBackdrop) logoutBackdrop.style.display = "none";
-  });
-
-document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
-      notifBackdrop.style.display = "none";
-      logoutBackdrop.style.display = "none";
-    }
-  });
 </script>
 
 </body>

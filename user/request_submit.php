@@ -61,7 +61,9 @@ $valid = $conn->prepare("
 $valid->bind_param("ss", $document_type, $title_type);
 $valid->execute();
 if (!$valid->get_result()->fetch_assoc()) {
-  die("Invalid Title Type for selected Document Type.");
+  swal_flash("error", "Error", "Invalid Title Type for selected Document Type.");
+  header("Location: request.php");
+  exit();
 }
 
 // Generate unique reference number: EDOC-YYYY-1234
@@ -78,7 +80,9 @@ do {
 
   $tries++;
   if ($tries > 10) {
-    die("Could not generate reference number.");
+    swal_flash("error", "Error", "Could not generate reference number.");
+    header("Location: request.php");
+    exit();
   }
 } while ($exists);
 
@@ -100,7 +104,9 @@ $stmt->bind_param(
 );
 
 if (!$stmt->execute()) {
-  die("Request submit failed: " . $stmt->error);
+  swal_flash("error", "Error", "Request submit failed.");
+  header("Location: request.php");
+  exit();
 }
 
 // Add tracking log

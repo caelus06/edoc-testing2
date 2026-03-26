@@ -43,6 +43,7 @@ $_SESSION["upload_doc_type"] = $document_type;
   <meta charset="UTF-8">
   <title>Upload Requirements</title>
   <link rel="stylesheet" href="../assets/css/upload_requirements.css">
+  <?php include __DIR__ . "/../includes/swal_header.php"; ?>
 </head>
 <body>
 

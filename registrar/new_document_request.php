@@ -88,7 +88,7 @@ $userRow = null;
 $error = "";
 $docTypes = [];
 $titleTypes = [];
-$selectedDocType = trim($_POST["document_type"] ?? "");
+$selectedDocType = trim($_POST["document_type"] ?? ($_GET["doc_type"] ?? ""));
 
 if ($step === 2) {
   if ($user_id <= 0) {
@@ -107,7 +107,11 @@ if ($step === 2) {
   $stU->bind_param("i", $user_id);
   $stU->execute();
   $userRow = $stU->get_result()->fetch_assoc();
-  if (!$userRow) die("Student not found.");
+  if (!$userRow) {
+    swal_flash("error", "Error", "Student not found.");
+    header("Location: new_document_request.php");
+    exit();
+  }
 
   // Fetch available document types + title types from requirements_master
   $stDT = $conn->prepare("SELECT DISTINCT document_type FROM requirements_master ORDER BY document_type ASC");
@@ -201,6 +205,7 @@ if ($step === 2) {
 
   <!-- ✅ IMPORTANT: load SAME layout CSS as request_management -->
   <link rel="stylesheet" href="../assets/css/new_document_request.css">
+  <?php include __DIR__ . "/../includes/swal_header.php"; ?>
 </head>
 <body>
 
@@ -227,7 +232,7 @@ if ($step === 2) {
 
     <div class="sb-section-title">SETTINGS</div>
     <nav class="sb-nav">
-      <a class="sb-item" href="../auth/logout.php"><span class="sb-icon">⎋</span>Logout</a>
+      <a class="sb-item" href="#" onclick="event.preventDefault(); swalConfirm('Logout', 'Are you sure you want to log out?', 'Yes, log out', function(){ window.location='../auth/logout.php'; })"><span class="sb-icon">⎋</span>Logout</a>
     </nav>
   </aside>
 
@@ -348,7 +353,7 @@ if ($step === 2) {
         </div>
 
         <?php if (!empty($error)): ?>
-          <div class="alert"><?= h($error) ?></div>
+          <script>document.addEventListener("DOMContentLoaded", function(){ swalError("Validation Error", <?= json_encode($error) ?>); });</script>
         <?php endif; ?>
 
         <div class="student-card">
@@ -379,7 +384,7 @@ if ($step === 2) {
 
           <div class="form-row">
             <label>Document Type:</label>
-            <select name="document_type" required onchange="this.form.submit()">
+            <select name="document_type" required onchange="if(this.value) window.location='new_document_request.php?step=2&user_id=<?= (int)$user_id ?>&doc_type='+encodeURIComponent(this.value)">
               <option value="">--- Select Document Type ---</option>
               <?php foreach ($docTypes as $d): ?>
                 <?php $dt = (string)$d["document_type"]; ?>

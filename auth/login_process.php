@@ -2,8 +2,8 @@
 require_once __DIR__ . "/../includes/helpers.php";
 
 function fail($msg) {
-  http_response_code(401);
-  echo $msg;
+  swal_flash("error", "Login Failed", $msg);
+  header("Location: auth.php");
   exit();
 }
 
