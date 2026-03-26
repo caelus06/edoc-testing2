@@ -36,7 +36,9 @@ if ($date_issued === "") $errors[] = "Date issued is required.";
 if ($registrar_name === "") $errors[] = "Registrar name is required.";
 
 if (!empty($errors)) {
-    die("Validation errors: " . implode(", ", $errors));
+    swal_flash("error", "Validation Error", implode(", ", $errors));
+    header("Location: create_document.php");
+    exit();
 }
 
 /* Verify the request exists and has an allowed status */
@@ -45,12 +47,16 @@ $reqCheck->bind_param("i", $request_id);
 $reqCheck->execute();
 $reqRow = $reqCheck->get_result()->fetch_assoc();
 if (!$reqRow) {
-    die("Request not found.");
+    swal_flash("error", "Error", "Request not found.");
+    header("Location: create_document.php");
+    exit();
 }
 
 $allowedStatuses = [STATUS_VERIFIED, STATUS_APPROVED, STATUS_PROCESSING];
 if (!in_array(strtoupper($reqRow["status"]), $allowedStatuses, true)) {
-    die("Cannot create SO for request with status: " . htmlspecialchars($reqRow["status"]));
+    swal_flash("error", "Error", "Cannot create SO for request with status: " . htmlspecialchars($reqRow["status"]));
+    header("Location: create_document.php");
+    exit();
 }
 
 /* Check for duplicate SO number */
@@ -58,7 +64,9 @@ $dupCheck = $conn->prepare("SELECT id FROM school_orders WHERE so_number = ? LIM
 $dupCheck->bind_param("s", $so_number);
 $dupCheck->execute();
 if ($dupCheck->get_result()->num_rows > 0) {
-    die("SO number '" . htmlspecialchars($so_number) . "' already exists. Please use a different number.");
+    swal_flash("error", "Duplicate SO Number", "SO number '" . htmlspecialchars($so_number) . "' already exists. Please use a different number.");
+    header("Location: create_document.php");
+    exit();
 }
 
 /* Generate DOCX using PHPWord TemplateProcessor */
@@ -66,7 +74,9 @@ use PhpOffice\PhpWord\TemplateProcessor;
 
 $templatePath = __DIR__ . "/../templates/so_template.docx";
 if (!file_exists($templatePath)) {
-    die("SO template file not found. Please ensure templates/so_template.docx exists.");
+    swal_flash("error", "Error", "SO template file not found. Please ensure templates/so_template.docx exists.");
+    header("Location: create_document.php");
+    exit();
 }
 
 $outputDir = __DIR__ . "/../uploads/school_orders";
@@ -93,7 +103,9 @@ try {
     $template->setValue('additional_notes', $additional_notes);
     $template->saveAs($outputFile);
 } catch (\Exception $e) {
-    die("Failed to generate DOCX: " . htmlspecialchars($e->getMessage()));
+    swal_flash("error", "Generation Failed", "Failed to generate DOCX: " . htmlspecialchars($e->getMessage()));
+    header("Location: create_document.php");
+    exit();
 }
 
 /* Save to database */
@@ -127,7 +139,9 @@ $ins->bind_param(
 if (!$ins->execute()) {
     // Clean up generated file on DB error
     @unlink($outputFile);
-    die("Failed to save School Order: " . htmlspecialchars($ins->error));
+    swal_flash("error", "Error", "Failed to save School Order: " . htmlspecialchars($ins->error));
+    header("Location: create_document.php");
+    exit();
 }
 
 $soId = $conn->insert_id;

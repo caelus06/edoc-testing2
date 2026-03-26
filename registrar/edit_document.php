@@ -105,15 +105,25 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     exit();
   }
 
-  // ── Add Title ───────────────────────────────────────────────────────────────
-  if ($action === "add_title") {
-  $titleName = trim($_POST["title_name"] ?? "");
-  if ($titleName) {
-    echo json_encode(["success" => true, "title_name" => $titleName]);
-  } else {
-    echo json_encode(["success" => false, "error" => "Title name required."]);
-  }
-  exit();
+// ── Add Title ───────────────────────────────────────────────────────────────
+if ($action === "add_title") {
+    $titleName = trim($_POST["title_name"] ?? "");
+    if ($titleName) {
+        // We insert a "placeholder" requirement so the title exists in the requirements_master table
+        // This is necessary because your schema seems to derive "titles" from this table
+        $stmt = $conn->prepare("INSERT INTO requirements_master (document_type, title_type, req_name, requirement_key) VALUES (?, ?, '__placeholder__', 'placeholder')");
+        $stmt->bind_param("ss", $docType, $titleName);
+        
+        if ($stmt->execute()) {
+            audit_log($conn, "INSERT", "requirements_master", $conn->insert_id, "Added new title group: " . $titleName);
+            echo json_encode(["success" => true, "title_name" => $titleName]);
+        } else {
+            echo json_encode(["success" => false, "error" => "Database error."]);
+        }
+    } else {
+        echo json_encode(["success" => false, "error" => "Title name required."]);
+    }
+    exit();
 }
 
   // ── Edit Title ──────────────────────────────────────────────────────────────
@@ -387,6 +397,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Edit Document</title>
   <link rel="stylesheet" href="../assets/css/edit_document.css">
+  <?php include __DIR__ . "/../includes/swal_header.php"; ?>
 </head>
 <body>
 
@@ -412,7 +423,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     </nav>
     <div class="sb-section-title">SETTINGS</div>
     <nav class="sb-nav">
-      <a class="sb-item" href="../auth/logout.php"><span class="sb-icon">&#9099;</span>Logout</a>
+      <a class="sb-item" href="#" onclick="event.preventDefault(); swalConfirm('Logout', 'Are you sure you want to log out?', 'Yes, log out', function(){ window.location='../auth/logout.php'; })"><span class="sb-icon">&#9099;</span>Logout</a>
     </nav>
   </aside>
 
@@ -800,21 +811,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   </div>
 </div>
 
-<!-- Confirm Delete -->
-<div class="modal-backdrop" id="modal-confirm">
-  <div class="modal-box confirm-box">
-    <div class="confirm-icon">&#9888;&#65039;</div>
-    <div class="confirm-title">ARE YOU SURE YOU WANT TO DELETE THIS?</div>
-    <div class="confirm-msg">This action <strong>cannot be undone</strong>.<br>The item will be permanently removed.</div>
-    <div class="confirm-actions">
-      <button class="modal-btn modal-btn-cancel" onclick="closeModal('confirm')">Cancel</button>
-      <button class="modal-btn modal-btn-danger" onclick="executeDelete()">Yes</button>
-    </div>
-  </div>
-</div>
-
-<!-- Toast -->
-<div id="toast"><span id="toast-msg"></span></div>
 
 
 <script>
@@ -825,16 +821,31 @@ function openModal(name)  { document.getElementById('modal-' + name).classList.a
 function closeModal(name) { document.getElementById('modal-' + name).classList.remove('open'); }
 
 function showToast(msg, isError = false) {
-  const t = document.getElementById('toast');
-  document.getElementById('toast-msg').textContent = msg;
-  t.className = 'show' + (isError ? ' error' : '');
-  setTimeout(() => t.className = '', 3000);
+  swalToast(msg, isError ? 'error' : 'success');
 }
 
 async function post(data) {
   const fd = new FormData();
+  
+  // 1. Add all the data passed to the function
   for (const k in data) fd.append(k, data[k]);
-  const r = await fetch('', { method: 'POST', body: fd });
+  
+  // 2. ADD THE CORRECT CSRF TOKEN NAME
+  // Note the underscore: _csrf_token
+  fd.append('_csrf_token', '<?= csrf_token() ?>'); 
+
+  // 3. Ensure we post back to the current page with the ID
+  const r = await fetch('edit_document.php?id=' + DOC_ID, { 
+    method: 'POST', 
+    body: fd 
+  });
+  
+  if (!r.ok) {
+     const errorText = await r.text();
+     showToast("Server Error: " + errorText, true);
+     return { success: false };
+  }
+
   return r.json();
 }
 
@@ -1214,16 +1225,14 @@ async function saveEditAppProcess() {
 }
 
 /* ── Delete ──────────────────────────────────────────────── */
-let _deleteCtx = null;
-
 function confirmDelete(type, reqId=null, titleName=null, remId=null, apId=null) {
-  _deleteCtx = { type, reqId, titleName, remId, apId };
-  openModal('confirm');
+  swalConfirmDanger("Delete?", "This action cannot be undone. The item will be permanently removed.", "Yes, delete", function() {
+    executeDelete({ type, reqId, titleName, remId, apId });
+  });
 }
 
-async function executeDelete() {
-  if (!_deleteCtx) return;
-  const { type, reqId, titleName, remId, apId } = _deleteCtx;
+async function executeDelete(ctx) {
+  const { type, reqId, titleName, remId, apId } = ctx;
   let res;
 
   if (type === 'clear_field') {
@@ -1232,9 +1241,7 @@ async function executeDelete() {
     const name = isDocName ? '' : document.getElementById('disp-doc-name').textContent.trim();
     const time = isDocName ? document.getElementById('disp-proc-time').textContent.trim() : '';
     post({ action: 'update_document', document_name: name, processing_time: time });
-    closeModal('confirm');
     showToast(isDocName ? 'Document name cleared.' : 'Processing time cleared.');
-    _deleteCtx = null;
     return;
   }
 
@@ -1242,8 +1249,6 @@ async function executeDelete() {
     res = await post({ action: 'delete_document' });
     if (res && res.success) { window.location.href = 'document_management.php'; }
     else showToast((res && res.error) || 'Error.', true);
-    closeModal('confirm');
-    _deleteCtx = null;
     return;
   }
 
@@ -1282,10 +1287,8 @@ async function executeDelete() {
       if (!document.querySelectorAll('#appprocess-list .info-card').length)
         document.getElementById('appprocess-list').innerHTML = '<div class="empty-msg" id="ap-empty">No application process added yet.</div>';
     }
-    closeModal('confirm');
     showToast('Deleted successfully.');
   } else showToast((res && res.error) || 'Error.', true);
-  _deleteCtx = null;
 }
 
 /* ── Title Dropdown Sync ─────────────────────────────────── */

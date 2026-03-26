@@ -8,7 +8,9 @@ $request_id = (int)($_SESSION["upload_request_id"] ?? 0);
 $ref        = trim($_POST["ref"] ?? ($_SESSION["upload_ref"] ?? ""));
 
 if ($request_id <= 0 || $ref === "") {
-  die("No request selected.");
+  swal_flash("error", "Error", "No request selected.");
+  header("Location: upload_requirements.php");
+  exit();
 }
 
 // Verify ownership + fetch doc info (helps requirement_key lookup)
@@ -16,14 +18,20 @@ $stmt = $conn->prepare("SELECT id, document_type, title_type FROM requests WHERE
 $stmt->bind_param("ii", $request_id, $user_id);
 $stmt->execute();
 $reqRow = $stmt->get_result()->fetch_assoc();
-if (!$reqRow) die("Invalid request.");
+if (!$reqRow) {
+  swal_flash("error", "Error", "Invalid request.");
+  header("Location: upload_requirements.php");
+  exit();
+}
 
 // Inputs
 $req_names = $_POST["req_names"] ?? [];
 $files     = $_FILES["files"] ?? null;
 
 if (!$files || !is_array($req_names) || count($req_names) === 0) {
-  die("No files submitted.");
+  swal_flash("error", "Error", "No files submitted.");
+  header("Location: upload_requirements.php");
+  exit();
 }
 
 $docType  = strtoupper(trim((string)($reqRow["document_type"] ?? "")));
@@ -80,11 +88,15 @@ for ($i = 0; $i < count($req_names); $i++) {
   if ($reqName === "") continue;
 
   if (!isset($files["tmp_name"][$i]) || $files["error"][$i] !== UPLOAD_ERR_OK) {
-    die("Upload error for " . htmlspecialchars($reqName));
+    swal_flash("error", "Upload Error", "Upload error for " . htmlspecialchars($reqName));
+    header("Location: upload_requirements_upload.php?ref=" . urlencode($ref));
+    exit();
   }
 
   if ((int)$files["size"][$i] > 15 * 1024 * 1024) {
-    die("File too large (15MB max): " . htmlspecialchars($reqName));
+    swal_flash("error", "File Too Large", "File too large (15MB max): " . htmlspecialchars($reqName));
+    header("Location: upload_requirements_upload.php?ref=" . urlencode($ref));
+    exit();
   }
 
   $tmp = $files["tmp_name"][$i];
@@ -95,7 +107,9 @@ for ($i = 0; $i < count($req_names); $i++) {
 
   // If you want images too, add them here. For now you required PDF only:
   if ($mime !== "application/pdf") {
-    die("Only PDF files allowed: " . htmlspecialchars($reqName));
+    swal_flash("error", "Invalid File Type", "Only PDF files allowed: " . htmlspecialchars($reqName));
+    header("Location: upload_requirements_upload.php?ref=" . urlencode($ref));
+    exit();
   }
 
   // Determine requirement_key from master
@@ -107,7 +121,11 @@ for ($i = 0; $i < count($req_names); $i++) {
   $newName  = bin2hex(random_bytes(12)) . "_" . $safeName;
   $dest     = $uploadDir . $newName;
 
-  if (!move_uploaded_file($tmp, $dest)) die("Failed to save file.");
+  if (!move_uploaded_file($tmp, $dest)) {
+    swal_flash("error", "Error", "Failed to save file.");
+    header("Location: upload_requirements_upload.php?ref=" . urlencode($ref));
+    exit();
+  }
 
   $relativePath = "uploads/requirements/" . $newName;
 

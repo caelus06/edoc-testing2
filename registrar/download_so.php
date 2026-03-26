@@ -25,7 +25,9 @@ $st->bind_param("i", $soId);
 $st->execute();
 $so = $st->get_result()->fetch_assoc();
 if (!$so) {
-    die("School Order not found.");
+    swal_flash("error", "Error", "School Order not found.");
+    header("Location: create_document.php");
+    exit();
 }
 
 /* Handle POST actions */
@@ -39,7 +41,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $up->execute();
         audit_log($conn, "UPDATE", "school_orders", $soId, "Finalized School Order: " . $so["so_number"]);
         add_log($conn, (int)$so["request_id"], "School Order " . $so["so_number"] . " finalized");
-        header("Location: download_so.php?id=" . $soId . "&msg=finalized");
+        swal_flash("success", "Finalized", "School Order has been finalized.");
+        header("Location: download_so.php?id=" . $soId);
         exit();
     }
 
@@ -49,7 +52,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $up->execute();
         audit_log($conn, "UPDATE", "school_orders", $soId, "Voided School Order: " . $so["so_number"]);
         add_log($conn, (int)$so["request_id"], "School Order " . $so["so_number"] . " voided");
-        header("Location: download_so.php?id=" . $soId . "&msg=voided");
+        swal_flash("success", "Voided", "School Order has been voided.");
+        header("Location: download_so.php?id=" . $soId);
         exit();
     }
 
@@ -62,7 +66,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             readfile($filePath);
             exit();
         }
-        die("File not found on disk.");
+        swal_flash("error", "Error", "File not found on disk.");
+        header("Location: download_so.php?id=" . $soId);
+        exit();
     }
 
     if ($action === "download_pdf") {
@@ -88,7 +94,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             exit();
         }
 
-        die("PDF conversion failed. LibreOffice may not be installed. Please download the DOCX and convert manually.");
+        swal_flash("error", "PDF Conversion Failed", "LibreOffice may not be installed. Please download the DOCX and convert manually.");
+        header("Location: download_so.php?id=" . $soId);
+        exit();
     }
 }
 
@@ -117,6 +125,7 @@ function soBadgeClass($s) {
     <title>School Order - <?= h($so["so_number"]) ?></title>
     <link rel="stylesheet" href="../assets/css/registrar_create_document.css">
     <link rel="stylesheet" href="../assets/css/process_create.css">
+    <?php include __DIR__ . "/../includes/swal_header.php"; ?>
     <style>
         .so-card {
             background: #fff;
@@ -206,7 +215,7 @@ function soBadgeClass($s) {
 
         <div class="sb-section-title">SETTINGS</div>
         <nav class="sb-nav">
-            <a class="sb-item" href="../auth/logout.php"><span class="sb-icon">&#x238B;</span>Logout</a>
+            <a class="sb-item" href="#" onclick="event.preventDefault(); swalConfirm('Logout', 'Are you sure you want to log out?', 'Yes, log out', function(){ window.location='../auth/logout.php'; })"><span class="sb-icon">&#x238B;</span>Logout</a>
         </nav>
     </aside>
 
@@ -226,11 +235,6 @@ function soBadgeClass($s) {
                 <a href="create_document.php" class="btn-back">&larr; Back to Requests</a>
             </div>
 
-            <?php if ($msg === "finalized"): ?>
-                <div class="msg-banner msg-success">School Order has been finalized successfully.</div>
-            <?php elseif ($msg === "voided"): ?>
-                <div class="msg-banner msg-success">School Order has been voided.</div>
-            <?php endif; ?>
 
             <div class="so-card">
                 <h2>
@@ -288,11 +292,11 @@ function soBadgeClass($s) {
 
                     <?php if ($so["status"] === "DRAFT"): ?>
                         <!-- Finalize -->
-                        <form method="POST" action="download_so.php?id=<?= $soId ?>">
+                        <form id="finalizeForm" method="POST" action="download_so.php?id=<?= $soId ?>">
                             <?= csrf_field() ?>
                             <input type="hidden" name="action" value="finalize">
-                            <button type="submit" class="btn-download btn-finalize"
-                                    onclick="return confirm('Finalize this School Order? This marks it as official.');">
+                            <button type="button" class="btn-download btn-finalize"
+                                    onclick="swalConfirm('Finalize School Order?', 'This marks it as official.', 'Yes, finalize', function(){ document.getElementById('finalizeForm').submit(); })">
                                 Finalize
                             </button>
                         </form>
@@ -300,11 +304,11 @@ function soBadgeClass($s) {
 
                     <?php if ($so["status"] !== "VOIDED"): ?>
                         <!-- Void -->
-                        <form method="POST" action="download_so.php?id=<?= $soId ?>">
+                        <form id="voidForm" method="POST" action="download_so.php?id=<?= $soId ?>">
                             <?= csrf_field() ?>
                             <input type="hidden" name="action" value="void">
-                            <button type="submit" class="btn-download btn-void"
-                                    onclick="return confirm('Void this School Order? This action cannot be undone.');">
+                            <button type="button" class="btn-download btn-void"
+                                    onclick="swalConfirmDanger('Void School Order?', 'This action cannot be undone.', 'Yes, void', function(){ document.getElementById('voidForm').submit(); })">
                                 Void
                             </button>
                         </form>

@@ -141,6 +141,26 @@ function csrf_verify(): bool {
 }
 
 /* ------------------------------------------------------------------ */
+/*  SWEETALERT FLASH MESSAGES                                          */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Queue a SweetAlert2 message to display after the next page load.
+ * Call this before a header("Location: ...") redirect.
+ *
+ * @param string $icon  "success"|"error"|"warning"|"info"
+ * @param string $title Alert title
+ * @param string $text  Optional body text
+ */
+function swal_flash(string $icon, string $title, string $text = ""): void {
+    $_SESSION["swal_flash"] = [
+        "icon"  => $icon,
+        "title" => $title,
+        "text"  => $text,
+    ];
+}
+
+/* ------------------------------------------------------------------ */
 /*  REQUEST LOGGING                                                    */
 /* ------------------------------------------------------------------ */
 

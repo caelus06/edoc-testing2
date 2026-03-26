@@ -23,7 +23,9 @@ $stmt->execute();
 $request = $stmt->get_result()->fetch_assoc();
 
 if (!$request) {
-  die("Request not found or not yours.");
+  swal_flash("error", "Error", "Request not found or not yours.");
+  header("Location: dashboard.php");
+  exit();
 }
 
 $request_id = (int)$request["id"];
@@ -143,6 +145,7 @@ $uiCSS = "
   <meta charset="UTF-8">
   <title>Track Progress</title>
   <link rel="stylesheet" href="../assets/css/dashboard.css">
+  <?php include __DIR__ . "/../includes/swal_header.php"; ?>
   <style><?= $uiCSS ?></style>
 </head>
 <body>

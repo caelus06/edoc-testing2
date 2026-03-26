@@ -96,6 +96,7 @@ function badgeClass($s){
     <meta charset="UTF-8" />
     <title>Create Document</title>
     <link rel="stylesheet" href="../assets/css/registrar_create_document.css">
+    <?php include __DIR__ . "/../includes/swal_header.php"; ?>
 </head>
 <body>
 
@@ -122,7 +123,7 @@ function badgeClass($s){
 
         <div class="sb-section-title">SETTINGS</div>
         <nav class="sb-nav">
-            <a class="sb-item" href="../auth/logout.php"><span class="sb-icon">⎋</span>Logout</a>
+            <a class="sb-item" href="#" onclick="event.preventDefault(); swalConfirm('Logout', 'Are you sure you want to log out?', 'Yes, log out', function(){ window.location='../auth/logout.php'; })"><span class="sb-icon">⎋</span>Logout</a>
         </nav>
     </aside>
 

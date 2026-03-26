@@ -22,7 +22,9 @@ $address = trim($_POST["address"] ?? "");
 
 // Basic email check (optional)
 if ($email !== "" && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-  die("Invalid email.");
+  swal_flash("error", "Error", "Invalid email.");
+  header("Location: profile.php");
+  exit();
 }
 
 $stmt = $conn->prepare("
