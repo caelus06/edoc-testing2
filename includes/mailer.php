@@ -34,16 +34,34 @@ function set_setting(mysqli $conn, string $key, string $value, ?int $updatedBy =
 }
 
 /**
+ * Last SMTP error message (populated on failure).
+ */
+$_smtp_last_error = '';
+
+/**
+ * Get the last SMTP error message.
+ */
+function get_smtp_error(): string {
+    global $_smtp_last_error;
+    return $_smtp_last_error;
+}
+
+/**
  * Send an email via Gmail SMTP.
  * Returns true on success, false on failure.
+ * On failure, call get_smtp_error() for details.
  */
 function send_email(mysqli $conn, string $to, string $subject, string $body): bool {
+    global $_smtp_last_error;
+    $_smtp_last_error = '';
+
     $smtpEmail = get_setting($conn, 'smtp_email');
     $smtpPass  = get_setting($conn, 'smtp_app_password');
     $senderName = get_setting($conn, 'smtp_sender_name') ?: 'E-Doc System';
 
     if ($smtpEmail === '' || $smtpPass === '') {
-        return false; // SMTP not configured
+        $_smtp_last_error = 'SMTP not configured. Enter Gmail address and App Password.';
+        return false;
     }
 
     $mail = new PHPMailer(true);
@@ -55,6 +73,7 @@ function send_email(mysqli $conn, string $to, string $subject, string $body): bo
         $mail->Password   = $smtpPass;
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port       = 587;
+        $mail->Timeout    = 10;
 
         $mail->setFrom($smtpEmail, $senderName);
         $mail->addAddress($to);
@@ -67,6 +86,7 @@ function send_email(mysqli $conn, string $to, string $subject, string $body): bo
         $mail->send();
         return true;
     } catch (Exception $e) {
+        $_smtp_last_error = $mail->ErrorInfo;
         error_log("PHPMailer error: " . $mail->ErrorInfo);
         return false;
     }

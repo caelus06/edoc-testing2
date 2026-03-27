@@ -56,7 +56,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         if ($testEmail !== "") {
             $ok = send_email($conn, $testEmail, "E-Doc SMTP Test",
                 "<p>This is a test email from the E-Doc System. If you received this, SMTP is configured correctly.</p>");
-            $testResult = $ok ? "success" : "fail";
+            if ($ok) {
+                $testResult = "success";
+                $testMessage = "Test email sent successfully to " . htmlspecialchars($testEmail);
+            } else {
+                $testResult = "fail";
+                $testMessage = "SMTP Error: " . htmlspecialchars(get_smtp_error());
+            }
         }
     }
 }
@@ -239,9 +245,9 @@ $smtpName      = get_setting($conn, "smtp_sender_name") ?: "E-Doc System";
 
             <?php if ($testResult !== null): ?>
               <?php if ($testResult === "success"): ?>
-                <div class="test-result success">Test email sent successfully. Check your inbox.</div>
+                <div class="test-result success"><?= $testMessage ?></div>
               <?php else: ?>
-                <div class="test-result fail">Test email failed. Check SMTP credentials and try again.</div>
+                <div class="test-result fail"><?= $testMessage ?></div>
               <?php endif; ?>
             <?php endif; ?>
           </div>
