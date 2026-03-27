@@ -287,6 +287,7 @@ if ($detailId > 0) {
       <a class="sb-item active" href="track_progress.php"><span class="sb-icon">📍</span>Track Progress</a>
       <a class="sb-item" href="document_management.php"><span class="sb-icon">📄</span>Document Management</a>
       <a class="sb-item" href="create_document.php"><span class="sb-icon">➕</span>Create Document</a>
+      <a class="sb-item" href="non_compliant.php"><span class="sb-icon">&#9888;</span>Non-Compliant Users</a>
     </nav>
 
     <div class="sb-section-title">SETTINGS</div>
