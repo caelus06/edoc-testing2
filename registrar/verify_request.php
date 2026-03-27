@@ -245,7 +245,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     ");
                     $up->bind_param("iis", $registrar_id, $request_id, $key);
                     $up->execute();
-                    add_log($conn, $request_id, "Registrar Update (" . $registrar_name . "): " . ucfirst($key) . " has been verified");
+                    notify_user($conn, $request_id, "Registrar Update (" . $registrar_name . "): " . ucfirst($key) . " has been verified");
                     audit_log($conn, "UPDATE", "request_files", $request_id, "Verified: " . ucfirst($key));
                 } elseif ($val === "RESUBMIT" && $currentReviewStatus !== "RESUBMIT") {
                     $up = $conn->prepare("
@@ -255,7 +255,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     ");
                     $up->bind_param("sis", $reason, $request_id, $key);
                     $up->execute();
-                    add_log($conn, $request_id, "Registrar Update (" . $registrar_name . "): Resubmission required for " . ucfirst($key));
+                    notify_user($conn, $request_id, "Registrar Update (" . $registrar_name . "): Resubmission required for " . ucfirst($key));
                     audit_log($conn, "UPDATE", "request_files", $request_id, "Resubmit required: " . ucfirst($key));
                 } elseif ($val === "RESUBMIT" && $currentReviewStatus === "RESUBMIT") {
                     // Same status but reason may have changed
@@ -274,7 +274,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     ");
                     $up->bind_param("is", $request_id, $key);
                     $up->execute();
-                    add_log($conn, $request_id, "Registrar Update (" . $registrar_name . "): " . ucfirst($key) . " returned to Pending");
+                    notify_user($conn, $request_id, "Registrar Update (" . $registrar_name . "): " . ucfirst($key) . " returned to Pending");
                     audit_log($conn, "UPDATE", "request_files", $request_id, "Returned to pending: " . ucfirst($key));
                 }
             }
@@ -293,7 +293,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $upReq = $conn->prepare("UPDATE requests SET status=?, updated_at=NOW() WHERE id=?");
                 $upReq->bind_param("si", $app_status, $request_id);
                 $upReq->execute();
-                add_log($conn, $request_id, "Registrar Update (" . $registrar_name . "): Application status updated to " . $app_status);
+                notify_user($conn, $request_id, "Registrar Update (" . $registrar_name . "): Application status updated to " . $app_status);
                 audit_log($conn, "UPDATE", "requests", $request_id, "Application status updated to " . $app_status);
             }
         }

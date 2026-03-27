@@ -194,3 +194,7 @@ function audit_log(
     $st->bind_param("isisss", $user_id, $action, $table_name, $record_id, $details, $ip);
     $st->execute();
 }
+
+// Load mailer for notify_user() and send_email() support.
+// mailer.php depends on add_log() being defined above, so this must come last.
+require_once __DIR__ . '/mailer.php';
