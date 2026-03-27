@@ -1,0 +1,12 @@
+{
+    "name": "edoc/edoc-system",
+    "description": "E-Doc Document Requesting System",
+    "type": "project",
+    "require": {
+        "phpoffice/phpword": "^1.0",
+        "phpmailer/phpmailer": "^7.0"
+    },
+    "config": {
+        "vendor-dir": "lib"
+    }
+}

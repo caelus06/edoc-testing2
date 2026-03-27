@@ -1,9 +1,14 @@
 {
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "65ca852a37b46d01d9fe10c62f4cb954",
     "packages": [
         {
             "name": "phpmailer/phpmailer",
             "version": "v7.0.2",
-            "version_normalized": "7.0.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHPMailer/PHPMailer.git",
@@ -43,9 +48,7 @@
                 "symfony/polyfill-mbstring": "To support UTF-8 if the Mbstring PHP extension is not enabled (^1.2)",
                 "thenetworg/oauth2-azure": "Needed for Microsoft XOAUTH2 authentication"
             },
-            "time": "2026-01-09T18:02:33+00:00",
             "type": "library",
-            "installation-source": "dist",
             "autoload": {
                 "psr-4": {
                     "PHPMailer\\PHPMailer\\": "src/"
@@ -83,12 +86,11 @@
                     "type": "github"
                 }
             ],
-            "install-path": "../phpmailer/phpmailer"
+            "time": "2026-01-09T18:02:33+00:00"
         },
         {
             "name": "phpoffice/math",
             "version": "0.2.0",
-            "version_normalized": "0.2.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHPOffice/Math.git",
@@ -109,9 +111,7 @@
                 "phpstan/phpstan": "^0.12.88 || ^1.0.0",
                 "phpunit/phpunit": "^7.0 || ^9.0"
             },
-            "time": "2024-08-12T07:30:45+00:00",
             "type": "library",
-            "installation-source": "dist",
             "autoload": {
                 "psr-4": {
                     "PhpOffice\\Math\\": "src/Math/"
@@ -138,12 +138,11 @@
                 "issues": "https://github.com/PHPOffice/Math/issues",
                 "source": "https://github.com/PHPOffice/Math/tree/0.2.0"
             },
-            "install-path": "../phpoffice/math"
+            "time": "2024-08-12T07:30:45+00:00"
         },
         {
             "name": "phpoffice/phpword",
             "version": "1.3.0",
-            "version_normalized": "1.3.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHPOffice/PHPWord.git",
@@ -182,9 +181,7 @@
                 "ext-xsl": "Allows applying XSL style sheet to headers, to main document part, and to footers of an OOXML template",
                 "ext-zip": "Allows writing OOXML and ODF"
             },
-            "time": "2024-08-30T18:03:42+00:00",
             "type": "library",
-            "installation-source": "dist",
             "autoload": {
                 "psr-4": {
                     "PhpOffice\\PhpWord\\": "src/PhpWord"
@@ -250,9 +247,16 @@
                 "issues": "https://github.com/PHPOffice/PHPWord/issues",
                 "source": "https://github.com/PHPOffice/PHPWord/tree/1.3.0"
             },
-            "install-path": "../phpoffice/phpword"
+            "time": "2024-08-30T18:03:42+00:00"
         }
     ],
-    "dev": true,
-    "dev-package-names": []
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": {},
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": {},
+    "platform-dev": {},
+    "plugin-api-version": "2.6.0"
 }
