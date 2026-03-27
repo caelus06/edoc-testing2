@@ -57,13 +57,20 @@ function send_compliance_notification(
 
     // Log to compliance_notifications
     $channel = $emailSent ? 'BOTH' : 'IN_APP';
-    $senderParam = ($type === 'AUTO') ? null : $senderId;
 
-    $ins = $conn->prepare("
-        INSERT INTO compliance_notifications (user_id, request_id, notification_type, channel, message, sent_by)
-        VALUES (?, ?, ?, ?, ?, ?)
-    ");
-    $ins->bind_param("iisssi", $userId, $requestId, $type, $channel, $message, $senderParam);
+    if ($type === 'AUTO') {
+        $ins = $conn->prepare("
+            INSERT INTO compliance_notifications (user_id, request_id, notification_type, channel, message, sent_by)
+            VALUES (?, ?, ?, ?, ?, NULL)
+        ");
+        $ins->bind_param("iisss", $userId, $requestId, $type, $channel, $message);
+    } else {
+        $ins = $conn->prepare("
+            INSERT INTO compliance_notifications (user_id, request_id, notification_type, channel, message, sent_by)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ");
+        $ins->bind_param("iisssi", $userId, $requestId, $type, $channel, $message, $senderId);
+    }
     $ins->execute();
 
     audit_log($conn, "INSERT", "compliance_notifications", $requestId, "Compliance notification sent ({$type}) to user #{$userId}");

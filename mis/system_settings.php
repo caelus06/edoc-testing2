@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . "/../includes/helpers.php";
-require_once __DIR__ . "/../includes/mailer.php";
 
 // Allow both REGISTRAR and MIS to access compliance settings.
 // SMTP settings are MIS-only (checked in POST handler).
@@ -87,7 +86,7 @@ $smtpName      = get_setting($conn, "smtp_sender_name") ?: "E-Doc System";
       <div class="avatar">👤</div>
       <div class="meta">
         <div class="name"><?= h($userName) ?></div>
-        <div class="role"><?= h($userRole) === ROLE_MIS ? "MIS Admin" : "Registrar" ?></div>
+        <div class="role"><?= $userRole === ROLE_MIS ? "MIS Admin" : "Registrar" ?></div>
       </div>
     </div>
 

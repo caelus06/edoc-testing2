@@ -24,7 +24,7 @@ body{
 
 /* SIDEBAR */
 .sidebar{
-  width: 240px;
+  width: 260px;
   background: var(--primary-blue);
   color: #fff;
   padding: 16px 12px;
