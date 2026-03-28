@@ -100,15 +100,28 @@ $smtpName      = get_setting($conn, "smtp_sender_name") ?: "E-Doc System";
 
     <div class="sb-section-title">MODULES</div>
     <nav class="sb-nav">
+      <?php if ($isMIS): ?>
       <a class="sb-item" href="dashboard.php"><span class="sb-icon">🏠</span>Dashboard</a>
       <a class="sb-item" href="account_management.php"><span class="sb-icon">👥</span>Account Management</a>
       <a class="sb-item" href="reports.php"><span class="sb-icon">📊</span>Reports</a>
       <a class="sb-item" href="audit_logs.php"><span class="sb-icon">🛡️</span>Audit Logs</a>
       <a class="sb-item active" href="system_settings.php"><span class="sb-icon">&#9881;</span>System Settings</a>
+      <?php else: ?>
+      <a class="sb-item" href="../registrar/dashboard.php"><span class="sb-icon">🏠</span>Dashboard</a>
+      <a class="sb-item" href="../registrar/new_document_request.php"><span class="sb-icon">📝</span>New Document Request</a>
+      <a class="sb-item" href="../registrar/request_management.php"><span class="sb-icon">🔎</span>Request Management</a>
+      <a class="sb-item" href="../registrar/track_progress.php"><span class="sb-icon">📍</span>Track Progress</a>
+      <a class="sb-item" href="../registrar/document_management.php"><span class="sb-icon">📄</span>Document Management</a>
+      <a class="sb-item" href="../registrar/create_document.php"><span class="sb-icon">➕</span>Create Document</a>
+      <a class="sb-item" href="../registrar/non_compliant.php"><span class="sb-icon">&#9888;</span>Non-Compliant Users</a>
+      <?php endif; ?>
     </nav>
 
     <div class="sb-section-title">SETTINGS</div>
     <nav class="sb-nav">
+      <?php if (!$isMIS): ?>
+      <a class="sb-item active" href="system_settings.php"><span class="sb-icon">&#9881;</span>System Settings</a>
+      <?php endif; ?>
       <a class="sb-item" href="#" onclick="event.preventDefault(); swalConfirm('Logout', 'Are you sure you want to log out?', 'Yes, log out', function(){ window.location='../auth/logout.php'; })"><span class="sb-icon">⎋</span>Logout</a>
     </nav>
   </aside>

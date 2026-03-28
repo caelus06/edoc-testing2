@@ -63,12 +63,13 @@ foreach ($allNonCompliant as $entry) {
     $reasons = format_reasons($entry['reasons']);
     $message = $defaultMessage . " Reason: " . implode(', ', $reasons) . ".";
 
-    $userId = $entry['user_id'];
-    $email  = $entry['email'];
-    $refNo  = $entry['reference_no'];
+    $userId  = $entry['user_id'];
+    $email   = $entry['email'];
+    $refNo   = $entry['reference_no'];
+    $docType = strtoupper($entry['document_type'] ?? '');
 
-    // In-app notification
-    add_log($conn, $requestId, "Auto-Compliance Notice: " . $message);
+    // In-app notification with reference number and document type
+    add_log($conn, $requestId, "Reference Number: " . $refNo . " (" . $docType . ") — Auto-Compliance Notice: " . $message . " Processed by System");
 
     // Email
     $emailBody = "

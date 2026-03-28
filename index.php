@@ -133,7 +133,23 @@
 </main>
 
 <footer class="footer-bar">
-  <p class="content">E-Doc Document Requesting System</p>
+  <div class="footer-container">
+    <div class="footer-line">
+      <span>&copy; 2026 Universidad de Dagupan | E-Doc Document Requesting System | </span>
+      <span>Powered by Quadcore</span>
+    </div>
+    
+    <div class="footer-line team-credits">
+      <span class="sep">|</span>
+      <span><b>Project Manager:</b> <a href="https://www.instagram.com/itsme_sias/" class="member-link" target="_blank">John Mesias Bautista</a></span>
+      <span class="sep">|</span>
+      <span><b>Business Analyst:</b> <a href="https://www.instagram.com/my.cahla/" class="member-link" target="_blank">Michaela Patungan</a></span>
+      <span class="sep">|</span>
+      <span><b>Software Developer:</b> <a href="https://www.instagram.com/celiio.o/" class="member-link" target="_blank">Russel Perez</a></span>
+      <span class="sep">|</span>
+      <span><b>QA:</b> <a href="https://www.facebook.com/junjeremy.arciaga" class="member-link" target="_blank">Jeremy Arciaga</a></span>
+    </div>
+  </div>
 </footer>
 
 </body>

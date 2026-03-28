@@ -25,7 +25,7 @@ function send_compliance_notification(
     string $type = 'MANUAL'
 ): bool {
     $st = $conn->prepare("
-        SELECT r.user_id, r.reference_no, u.email
+        SELECT r.user_id, r.reference_no, r.document_type, u.email
         FROM requests r
         JOIN users u ON u.id = r.user_id
         WHERE r.id = ? LIMIT 1
@@ -35,12 +35,14 @@ function send_compliance_notification(
     $row = $st->get_result()->fetch_assoc();
     if (!$row) return false;
 
-    $userId = (int)$row['user_id'];
-    $refNo  = $row['reference_no'];
-    $email  = $row['email'];
+    $userId  = (int)$row['user_id'];
+    $refNo   = $row['reference_no'];
+    $docType = strtoupper($row['document_type'] ?? '');
+    $email   = $row['email'];
 
-    // In-app notification
-    add_log($conn, $requestId, "Compliance Notice: " . $message);
+    // In-app notification with reference number, document type + anonymous registrar ID
+    $registrar_anon = ($type === 'AUTO') ? "System" : get_registrar_id($conn, $senderId);
+    add_log($conn, $requestId, "Reference Number: " . $refNo . " (" . $docType . ") — Compliance Notice: " . $message . " Processed by " . $registrar_anon);
 
     // Email notification
     $emailBody = "

@@ -310,22 +310,64 @@ display: block;
 }
 
 /* FOOTER BAR */
+/* FOOTER BAR - Single Line High-Contrast Fix */
 .footer-bar {
-height: 120px;
-background: var(--primary);
-margin-top: 60px;
-position: relative;
-overflow: hidden;
+    background-color: #001a72; /* Deep Navy */
+    padding: 15px 10px;
+    margin-top: 60px;
+    width: 100%;
+    color: #FFFFFF;
+    font-size: 12.5px;
 }
 
-.footer-bar .content {
-position: absolute;
-bottom: 20px;
-left: 0;
-right: 0;
-text-align: center;
-color: rgba(255,255,255,0.6);
-font-size: 0.8rem;
+.footer-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap; /* Allows wrapping on mobile only */
+    gap: 5px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.footer-line {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap; /* Prevents text from breaking into new lines */
+}
+
+/* Individual Member Links */
+.member-link {
+    color: #FFFFFF;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.member-link:hover {
+    color: #29ABE2; /* Highlights to light blue on hover */
+    text-decoration: underline;
+}
+
+.group-name {
+    font-weight: bold;
+    color: #29ABE2; /* Keeps Quadcore highlighted */
+}
+
+.sep {
+    color: rgba(255, 255, 255, 0.4);
+    margin: 0 3px;
+}
+
+/* Small screen adjustment: only stacks if the screen is super narrow */
+@media (max-width: 950px) {
+    .footer-container {
+        flex-direction: column;
+        gap: 2px;
+    }
+    .team-credits .sep:first-child {
+        display: none; /* Removes the first pipe when stacked */
+    }
 }
 
 /* RESPONSIVE */
