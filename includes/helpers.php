@@ -194,3 +194,34 @@ function audit_log(
     $st->bind_param("isisss", $user_id, $action, $table_name, $record_id, $details, $ip);
     $st->execute();
 }
+
+/* ------------------------------------------------------------------ */
+/*  REGISTRAR ANONYMITY                                                */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Get an anonymous Window ID for a registrar (R1, R2, R3, ...).
+ * Auto-assigned based on registration order (lowest user ID = R1).
+ * Caches the mapping after first call.
+ */
+function get_registrar_id(mysqli $conn, int $registrarUserId): string {
+    static $map = null;
+
+    if ($map === null) {
+        $map = [];
+        $st = $conn->query("SELECT id FROM users WHERE role = 'REGISTRAR' ORDER BY id ASC");
+        if ($st) {
+            $n = 1;
+            while ($row = $st->fetch_assoc()) {
+                $map[(int)$row['id']] = 'R' . $n;
+                $n++;
+            }
+        }
+    }
+
+    return $map[$registrarUserId] ?? ('R' . $registrarUserId);
+}
+
+// Load mailer for notify_user() and send_email() support.
+// mailer.php depends on add_log() being defined above, so this must come last.
+require_once __DIR__ . '/mailer.php';

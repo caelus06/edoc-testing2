@@ -217,6 +217,7 @@ $excelQuery = http_build_query([
       <a class="sb-item" href="account_management.php"><span class="sb-icon">👥</span>Account Management</a>
       <a class="sb-item active" href="reports.php"><span class="sb-icon">📊</span>Reports</a>
       <a class="sb-item" href="audit_logs.php"><span class="sb-icon">🛡️</span>Audit Logs</a>
+      <a class="sb-item" href="system_settings.php"><span class="sb-icon">&#9881;</span>System Settings</a>
     </nav>
 
     <div class="sb-section-title">SETTINGS</div>

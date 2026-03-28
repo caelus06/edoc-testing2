@@ -66,6 +66,21 @@ if (!$valid->get_result()->fetch_assoc()) {
   exit();
 }
 
+// Block duplicate: user already has an active request for the same document type
+$dupCheck = $conn->prepare("
+  SELECT id FROM requests
+  WHERE user_id = ? AND document_type = ?
+    AND status NOT IN ('COMPLETED','CANCELLED','RELEASED')
+  LIMIT 1
+");
+$dupCheck->bind_param("is", $user_id, $document_type);
+$dupCheck->execute();
+if ($dupCheck->get_result()->fetch_assoc()) {
+  swal_flash("error", "Duplicate Request", "You already have an active request for " . strtoupper($document_type) . ". Please complete or cancel it first.");
+  header("Location: request.php");
+  exit();
+}
+
 // Generate unique reference number: EDOC-YYYY-1234
 $year = date("Y");
 $tries = 0;
@@ -112,7 +127,7 @@ if (!$stmt->execute()) {
 // Add tracking log
 $newRequestId = $conn->insert_id;
 
-$message = "PENDING - " . strtoupper($document_type) . " (" . strtoupper($title_type) . ")";
+$message = "Reference Number: " . $reference . " (" . strtoupper($document_type) . ") — Request submitted. Status: PENDING";
 add_log($conn, $newRequestId, $message);
 audit_log($conn, "INSERT", "requests", $newRequestId, "New request: " . strtoupper($document_type) . " (" . strtoupper($title_type) . ")");
 

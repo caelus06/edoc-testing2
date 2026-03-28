@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . "/../includes/helpers.php";
 require_role(ROLE_REGISTRAR);
+require_once __DIR__ . "/../includes/compliance.php";
 
 $registrarName = "Registrar";
 $registrarLabel = "Registrar";
@@ -56,6 +57,7 @@ $trk_verified   = countRequestsByStatus($conn, "VERIFIED");
 $trk_approved   = countRequestsByStatus($conn, "APPROVED");
 $trk_processing = countRequestsByStatus($conn, "PROCESSING");
 $trk_ready      = countRequestsByStatus($conn, "READY FOR PICKUP");
+$nonCompliantCount = count_non_compliant($conn);
 
 ?>
 <!DOCTYPE html>
@@ -88,10 +90,12 @@ $trk_ready      = countRequestsByStatus($conn, "READY FOR PICKUP");
       <a class="sb-item" href="track_progress.php"><span class="sb-icon">📍</span>Track Progress</a>
       <a class="sb-item" href="document_management.php"><span class="sb-icon">📄</span>Document Management</a>
       <a class="sb-item" href="create_document.php"><span class="sb-icon">➕</span>Create Document</a>
+      <a class="sb-item" href="non_compliant.php"><span class="sb-icon">&#9888;</span>Non-Compliant Users</a>
     </nav>
 
     <div class="sb-section-title">SETTINGS</div>
     <nav class="sb-nav">
+      <a class="sb-item" href="../mis/system_settings.php"><span class="sb-icon">&#9881;</span>System Settings</a>
       <a class="sb-item" href="#" onclick="event.preventDefault(); swalConfirm('Logout', 'Are you sure you want to log out?', 'Yes, log out', function(){ window.location='../auth/logout.php'; })"><span class="sb-icon">⎋</span>Logout</a>
     </nav>
   </aside>
@@ -159,7 +163,13 @@ $trk_ready      = countRequestsByStatus($conn, "READY FOR PICKUP");
         </a>
       </div>
 
-      
+      <div class="section-label">COMPLIANCE</div>
+      <div class="cards-compliance">
+        <a class="card clickable card-compliance" href="non_compliant.php">
+          <div class="big compliance-count"><?= (int)$nonCompliantCount ?></div>
+          <div class="desc"><b>Non-Compliant Users:</b> Students with missing documents, resubmission required, or abandoned requests that need follow-up.</div>
+        </a>
+      </div>
     </main>
   </div>
 </div>

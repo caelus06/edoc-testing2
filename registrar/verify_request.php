@@ -9,6 +9,7 @@ $_regQ->bind_param("i", $registrar_id);
 $_regQ->execute();
 $_regRow = $_regQ->get_result()->fetch_assoc();
 $registrar_name = $_regRow ? trim($_regRow["first_name"] . " " . $_regRow["last_name"]) : "Registrar #" . $registrar_id;
+$registrar_anon = get_registrar_id($conn, $registrar_id);
 
 function redirect_back(int $request_id, string $rk){
   header("Location: verify_request.php?id={$request_id}&rk=" . urlencode($rk));
@@ -245,7 +246,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     ");
                     $up->bind_param("iis", $registrar_id, $request_id, $key);
                     $up->execute();
-                    add_log($conn, $request_id, "Registrar Update (" . $registrar_name . "): " . ucfirst($key) . " has been verified");
+                    notify_user($conn, $request_id, "Reference Number: " . $reqRow["reference_no"] . " (" . strtoupper($reqRow["document_type"]) . ") — " . ucfirst($key) . " has been verified. Processed by " . $registrar_anon);
                     audit_log($conn, "UPDATE", "request_files", $request_id, "Verified: " . ucfirst($key));
                 } elseif ($val === "RESUBMIT" && $currentReviewStatus !== "RESUBMIT") {
                     $up = $conn->prepare("
@@ -255,7 +256,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     ");
                     $up->bind_param("sis", $reason, $request_id, $key);
                     $up->execute();
-                    add_log($conn, $request_id, "Registrar Update (" . $registrar_name . "): Resubmission required for " . ucfirst($key));
+                    notify_user($conn, $request_id, "Reference Number: " . $reqRow["reference_no"] . " (" . strtoupper($reqRow["document_type"]) . ") — Resubmission required for " . ucfirst($key) . ". Processed by " . $registrar_anon);
                     audit_log($conn, "UPDATE", "request_files", $request_id, "Resubmit required: " . ucfirst($key));
                 } elseif ($val === "RESUBMIT" && $currentReviewStatus === "RESUBMIT") {
                     // Same status but reason may have changed
@@ -274,7 +275,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     ");
                     $up->bind_param("is", $request_id, $key);
                     $up->execute();
-                    add_log($conn, $request_id, "Registrar Update (" . $registrar_name . "): " . ucfirst($key) . " returned to Pending");
+                    notify_user($conn, $request_id, "Reference Number: " . $reqRow["reference_no"] . " (" . strtoupper($reqRow["document_type"]) . ") — " . ucfirst($key) . " returned to Pending. Processed by " . $registrar_anon);
                     audit_log($conn, "UPDATE", "request_files", $request_id, "Returned to pending: " . ucfirst($key));
                 }
             }
@@ -293,7 +294,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $upReq = $conn->prepare("UPDATE requests SET status=?, updated_at=NOW() WHERE id=?");
                 $upReq->bind_param("si", $app_status, $request_id);
                 $upReq->execute();
-                add_log($conn, $request_id, "Registrar Update (" . $registrar_name . "): Application status updated to " . $app_status);
+                notify_user($conn, $request_id, "Reference Number: " . $reqRow["reference_no"] . " (" . strtoupper($reqRow["document_type"]) . ") — Application status updated to " . $app_status . ". Processed by " . $registrar_anon);
                 audit_log($conn, "UPDATE", "requests", $request_id, "Application status updated to " . $app_status);
             }
         }
@@ -439,219 +440,293 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   <title>Verify Request</title>
   <link rel="stylesheet" href="../assets/css/verify_request.css">
   <?php include __DIR__ . "/../includes/swal_header.php"; ?>
-  <style>
-    /* safe additions (won't break your existing css) */
-    .preview-pdf {
-      width: 100%;
-      height: 520px;
-      border: none;
-      border-radius: 12px;
-      background: #fff;
-    }
-  </style>
 </head>
 <body>
 
-<header class="topbar">
-  <a href="request_management.php" class="back-btn" title="Go Back">←</a>
-</header>
+<div class="layout">
 
-<main class="verify-wrapper">
-
-  <!-- LEFT (FORM) -->
-  <form id="verifyForm" class="verify-left" method="POST" action="verify_request.php">
-    <?= csrf_field() ?>
-    <input type="hidden" name="request_id" value="<?= (int)$request_id ?>">
-    <input type="hidden" name="rk" value="<?= h($rk) ?>">
-
-    <div class="verify-title">Verify Request</div>
-    <div class="verify-sub">Track and view the status of the document request</div>
-
-    <div class="block">
-      <div class="block-title">Requestor Information</div>
-      <div><b>Name:</b> <?= h($fullName) ?></div>
-      <div><b>ID Number:</b> <?= h($reqRow["student_id"] ?: "N/A") ?></div>
-      <div><b>Email:</b> <?= h($reqRow["email"] ?: "N/A") ?></div>
-      <div><b>Contact Number:</b> <?= h($reqRow["contact_number"] ?: "N/A") ?></div>
-      <div><b>Course/Program:</b> <?= h($reqRow["course"] ?: "N/A") ?></div>
-      <div><b>Major:</b> <?= h($reqRow["major"] ?: "N/A") ?></div>
-      <div><b>Year Graduated:</b> <?= h($reqRow["year_graduated"] ?: "N/A") ?></div>
-      <div>
-        <b>Account Status:</b>
-        <?php if ($accountStatus === "VERIFIED"): ?>
-          <span class="pill pill-green">✓ VERIFIED</span>
-        <?php else: ?>
-          <span class="pill pill-gray">PENDING</span>
-        <?php endif; ?>
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-user">
+      <div class="avatar">👤</div>
+      <div class="meta">
+        <div class="name"><?= h($registrar_name) ?></div>
+        <div class="role">Registrar</div>
       </div>
     </div>
 
-    <div class="block">
-      <div class="block-title">Document Request Status</div>
-      <div><b>Reference Number:</b> <?= h($reqRow["reference_no"]) ?></div>
-      <div><b>Document:</b> <?= h(strtoupper($doc_type_raw)) ?></div>
-      <div><b>Title Type:</b> <?= h($title_type_raw ?: "N/A") ?></div>
-      <div><b>Number of Copies:</b> <?= (int)$reqRow["copies"] ?></div>
-      <div><b>Requested on:</b> <?= h(date("F j, Y", strtotime($reqRow["created_at"] ?? "now"))) ?></div>
-      <div><b>Last Updated:</b> <?= h(date("F j, Y", strtotime($reqRow["updated_at"] ?? ($reqRow["created_at"] ?? "now")))) ?></div>
-    </div>
+    <div class="sb-section-title">MODULES</div>
+    <nav class="sb-nav">
+      <a class="sb-item" href="dashboard.php"><span class="sb-icon">🏠</span>Dashboard</a>
+      <a class="sb-item" href="new_document_request.php"><span class="sb-icon">📝</span>New Document Request</a>
+      <a class="sb-item active" href="request_management.php"><span class="sb-icon">🔎</span>Request Management</a>
+      <a class="sb-item" href="track_progress.php"><span class="sb-icon">📍</span>Track Progress</a>
+      <a class="sb-item" href="document_management.php"><span class="sb-icon">📄</span>Document Management</a>
+      <a class="sb-item" href="create_document.php"><span class="sb-icon">➕</span>Create Document</a>
+      <a class="sb-item" href="non_compliant.php"><span class="sb-icon">&#9888;</span>Non-Compliant Users</a>
+    </nav>
 
-    <div class="block">
-      <div class="block-title">Requirements Status</div>
+    <div class="sb-section-title">SETTINGS</div>
+    <nav class="sb-nav">
+      <a class="sb-item" href="../mis/system_settings.php"><span class="sb-icon">&#9881;</span>System Settings</a>
+      <a class="sb-item" href="#" onclick="event.preventDefault(); swalConfirm('Logout', 'Are you sure you want to log out?', 'Yes, log out', function(){ window.location='../auth/logout.php'; })"><span class="sb-icon">⎋</span>Logout</a>
+    </nav>
+  </aside>
 
-      <?php foreach ($reqs as $r): ?>
-        <?php
-          $key = (string)$r["requirement_key"];
-          $row = $filesByKey[$key] ?? null;
-          $statusVal = strtoupper($row["review_status"] ?? "PENDING");
-          $savedReason = $row["resubmit_reason"] ?? "";
-        ?>
-        <div class="req-row">
-          <div class="req-name"><?= h($r["req_name"]) ?></div>
+  <!-- MAIN -->
+  <div class="main">
+    <header class="topbar">
+      <button class="hamburger" type="button" onclick="toggleSidebar()">≡</button>
+      <div class="brand">
+        <div class="logo"><img src="../assets/img/edoc-logo.jpeg" alt="E-Doc"></div>
+        <div>E-Doc Document Requesting System</div>
+      </div>
+    </header>
 
-          <select class="req-select status-select" name="req_status[<?= h($key) ?>]" data-key="<?= h($key) ?>">
-            <option value="PENDING"  <?= $statusVal==="PENDING" ? "selected" : "" ?>>PENDING</option>
-            <option value="VERIFIED" <?= $statusVal==="VERIFIED" ? "selected" : "" ?>>VERIFIED</option>
-            <option value="RESUBMIT" <?= $statusVal==="RESUBMIT" ? "selected" : "" ?>>RESUBMIT</option>
-          </select>
+    <main class="container">
 
-          <a class="req-view" href="verify_request.php?id=<?= (int)$request_id ?>&rk=<?= urlencode($key) ?>">View</a>
+      <!-- PAGE HEADER -->
+      <div class="page-head">
+        <div class="page-head-row">
+          <div>
+            <h1>Verify Request</h1>
+            <p>Review uploaded documents and update application status</p>
+          </div>
+          <a class="btn-back" href="request_management.php">Back to Requests</a>
         </div>
-        <div class="resubmit-reason-wrap" id="reason-<?= h($key) ?>" style="display:<?= $statusVal==="RESUBMIT" ? "block" : "none" ?>;">
-          <textarea class="resubmit-textarea" name="resubmit_reason[<?= h($key) ?>]" placeholder="Reason for resubmission..." maxlength="500"><?= h($savedReason) ?></textarea>
-        </div>
-      <?php endforeach; ?>
-
-      <div class="block-title" style="margin-top:14px;">Application Status</div>
-      <div class="app-row">
-        <select class="app-select" name="app_status">
-          <?php
-            $app = normalize_app_status($reqRow["status"] ?? "PENDING");
-            $opts = ["PENDING","APPROVED","PROCESSING","READY FOR PICKUP","COMPLETED"];
-            foreach ($opts as $o):
-          ?>
-            <option value="<?= h($o) ?>" <?= $app===$o ? "selected" : "" ?>>
-              <?= ($o==="COMPLETED") ? 'APPLICATION STATUS "COMPLETE"' : ''.$o?>
-            </option>
-          <?php endforeach; ?>
-        </select>
-        <div class="app-help">Application Status: Approved, Processing, Ready for Pickup, and Complete.</div>
       </div>
 
-      <div class="note">
-        NOTE!!! Once the Application Status is <b>COMPLETED</b> scanned the document and upload it here
+      <!-- REQUEST SUMMARY BAR -->
+      <div class="summary-bar">
+        <div class="summary-item"><span class="summary-label">Reference</span><span class="summary-value"><?= h($reqRow["reference_no"]) ?></span></div>
+        <div class="summary-item"><span class="summary-label">Document</span><span class="summary-value"><?= h(strtoupper($doc_type_raw)) ?></span></div>
+        <div class="summary-item"><span class="summary-label">Title Type</span><span class="summary-value"><?= h($title_type_raw ?: "N/A") ?></span></div>
+        <div class="summary-item"><span class="summary-label">Status</span><span class="summary-value pill pill-<?= strtolower(str_replace(' ', '', $reqRow["status"] ?? "pending")) ?>"><?= h(strtoupper($reqRow["status"] ?? "PENDING")) ?></span></div>
       </div>
 
-      <!-- ✅ NEW: SCANNED DOCUMENT line -->
-      <div class="req-row" style="margin-top:10px;">
-        <div class="req-name"><b>SCANNED DOCUMENT</b></div>
-        <div style="flex:1;"></div>
-        <a class="req-view" href="verify_request.php?id=<?= (int)$request_id ?>&rk=<?= urlencode($SCANNED_KEY) ?>">View</a>
-      </div>
-    </div>
+      <!-- TWO-COLUMN CONTENT -->
+      <form id="verifyForm" method="POST" action="verify_request.php">
+        <?= csrf_field() ?>
+        <input type="hidden" name="request_id" value="<?= (int)$request_id ?>">
+        <input type="hidden" name="rk" value="<?= h($rk) ?>">
+        <input type="hidden" name="action" value="save">
 
-    <input type="hidden" name="action" value="save">
-  </form>
+        <div class="content-grid">
 
-  <!-- RIGHT -->
-  <section class="verify-right">
-    <div class="preview-card">
-      <div class="preview-title">
-        <?php
-          if ($rk === $SCANNED_KEY) {
-            echo "SCANNED DOCUMENT";
-          } else {
-            $shownTitle = null;
-            foreach ($reqs as $r) {
-              if ($r["requirement_key"] === $rk) { $shownTitle = $r["req_name"]; break; }
-            }
-            echo h(strtoupper($shownTitle ?: $rk));
-          }
-        ?>
-      </div>
+          <!-- LEFT COLUMN -->
+          <div class="left-col">
 
-      <div class="preview-body">
-        <?php if ($selectedFile && !empty($selectedFile["file_path"]) && file_exists("../".$selectedFile["file_path"])): ?>
-          <?php
-            $path = "../".$selectedFile["file_path"];
-            $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-          ?>
-
-          <?php if ($ext === "pdf"): ?>
-            <!-- PDF preview -->
-            <iframe class="preview-pdf" src="<?= h($path) ?>"></iframe>
-            <div style="margin-top:8px;">
-              <!-- need to fix position <a href="<?= h($path) ?>" target="_blank">Open PDF in new tab</a> -->
+            <!-- Requestor Info Card -->
+            <div class="card">
+              <div class="card-head">Requestor Information</div>
+              <div class="info-grid">
+                <div class="info-item"><span class="info-label">Name</span><span class="info-value"><?= h($fullName) ?></span></div>
+                <div class="info-item"><span class="info-label">Student ID</span><span class="info-value"><?= h($reqRow["student_id"] ?: "N/A") ?></span></div>
+                <div class="info-item"><span class="info-label">Email</span><span class="info-value"><?= h($reqRow["email"] ?: "N/A") ?></span></div>
+                <div class="info-item"><span class="info-label">Contact</span><span class="info-value"><?= h($reqRow["contact_number"] ?: "N/A") ?></span></div>
+                <div class="info-item"><span class="info-label">Course</span><span class="info-value"><?= h($reqRow["course"] ?: "N/A") ?></span></div>
+                <div class="info-item"><span class="info-label">Major</span><span class="info-value"><?= h($reqRow["major"] ?: "N/A") ?></span></div>
+                <div class="info-item"><span class="info-label">Year Graduated</span><span class="info-value"><?= h($reqRow["year_graduated"] ?: "N/A") ?></span></div>
+                <div class="info-item"><span class="info-label">Copies</span><span class="info-value"><?= (int)$reqRow["copies"] ?></span></div>
+                <div class="info-item">
+                  <span class="info-label">Account</span>
+                  <span class="info-value"><?php if ($accountStatus === "VERIFIED"): ?><span class="pill pill-verified">VERIFIED</span><?php else: ?><span class="pill pill-pending">PENDING</span><?php endif; ?></span>
+                </div>
+              </div>
             </div>
-          <?php elseif (in_array($ext, ["jpg","jpeg","png","webp"])): ?>
-            <img class="preview-img" src="<?= h($path) ?>" alt="Uploaded file">
-          <?php else: ?>
-            <div class="preview-file">
-              <b>Uploaded File:</b>
-              <a href="<?= h($path) ?>" target="_blank"><?= h(basename($path)) ?></a>
+
+            <!-- Requirements Card -->
+            <div class="card">
+              <div class="card-head">Requirements</div>
+
+              <div class="req-list">
+                <?php foreach ($reqs as $r): ?>
+                  <?php
+                    $key = (string)$r["requirement_key"];
+                    $row = $filesByKey[$key] ?? null;
+                    $statusVal = strtoupper($row["review_status"] ?? "PENDING");
+                    $savedReason = $row["resubmit_reason"] ?? "";
+                    $isActive = ($rk === $key);
+                    $hasFile = $row && !empty($row["file_path"]);
+                  ?>
+                  <a class="req-item <?= $isActive ? 'req-active' : '' ?>" href="verify_request.php?id=<?= (int)$request_id ?>&rk=<?= urlencode($key) ?>">
+                    <span class="req-name"><?= h($r["req_name"]) ?></span>
+                    <span class="req-status req-status-<?= strtolower($statusVal) ?>"><?= $statusVal ?></span>
+                  </a>
+                  <?php if (!$isActive): ?>
+                    <input type="hidden" name="req_status[<?= h($key) ?>]" value="<?= h($statusVal) ?>">
+                    <input type="hidden" name="resubmit_reason[<?= h($key) ?>]" value="<?= h($savedReason) ?>">
+                  <?php endif; ?>
+                <?php endforeach; ?>
+
+                <!-- Scanned Document -->
+                <a class="req-item req-item-scan <?= ($rk === $SCANNED_KEY) ? 'req-active' : '' ?>" href="verify_request.php?id=<?= (int)$request_id ?>&rk=<?= urlencode($SCANNED_KEY) ?>">
+                  <span class="req-name">Scanned Document</span>
+                  <span class="req-hint">Final copy</span>
+                </a>
+              </div>
             </div>
+
+            <!-- Application Status Card -->
+            <div class="card">
+              <div class="card-head">Application Status</div>
+              <select class="app-select" name="app_status">
+                <?php
+                  $app = normalize_app_status($reqRow["status"] ?? "PENDING");
+                  $opts = ["PENDING","APPROVED","PROCESSING","READY FOR PICKUP","COMPLETED"];
+                  foreach ($opts as $o):
+                ?>
+                  <option value="<?= h($o) ?>" <?= $app===$o ? "selected" : "" ?>><?= h($o) ?></option>
+                <?php endforeach; ?>
+              </select>
+              <div class="app-hint">Once COMPLETED, scan and upload the final document above.</div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="form-actions">
+              <button class="btn-save" type="submit" form="verifyForm">Save Changes</button>
+              <a class="btn-cancel" href="request_management.php">Cancel</a>
+            </div>
+
+          </div>
+
+        </div><!-- /.content-grid (left col) -->
+      </form>
+
+      <!-- RIGHT COLUMN: Document Preview (outside main form so upload/delete forms work) -->
+      <div class="preview-wrapper">
+        <div class="card preview-card">
+          <div class="preview-header">
+            <div class="preview-title">
+              <?php
+                if ($rk === $SCANNED_KEY) {
+                  echo "Scanned Document";
+                } else {
+                  $shownTitle = null;
+                  foreach ($reqs as $r) {
+                    if ($r["requirement_key"] === $rk) { $shownTitle = $r["req_name"]; break; }
+                  }
+                  echo h($shownTitle ?: ucwords(str_replace("_", " ", $rk)));
+                }
+              ?>
+            </div>
+            <div class="preview-nav">
+              <?php if ($prevKey): ?>
+                <a class="nav-arrow" href="verify_request.php?id=<?= (int)$request_id ?>&rk=<?= urlencode($prevKey) ?>" title="Previous">&lsaquo;</a>
+              <?php else: ?>
+                <span class="nav-arrow disabled">&lsaquo;</span>
+              <?php endif; ?>
+              <?php if ($nextKey): ?>
+                <a class="nav-arrow" href="verify_request.php?id=<?= (int)$request_id ?>&rk=<?= urlencode($nextKey) ?>" title="Next">&rsaquo;</a>
+              <?php else: ?>
+                <span class="nav-arrow disabled">&rsaquo;</span>
+              <?php endif; ?>
+            </div>
+          </div>
+
+          <div class="preview-body">
+            <?php if ($selectedFile && !empty($selectedFile["file_path"]) && file_exists("../".$selectedFile["file_path"])): ?>
+              <?php
+                $path = "../".$selectedFile["file_path"];
+                $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+              ?>
+              <?php if ($ext === "pdf"): ?>
+                <iframe class="preview-pdf" src="<?= h($path) ?>"></iframe>
+              <?php elseif (in_array($ext, ["jpg","jpeg","png","webp"])): ?>
+                <img class="preview-img" src="<?= h($path) ?>" alt="Uploaded file">
+              <?php else: ?>
+                <div class="preview-file">
+                  <a href="<?= h($path) ?>" target="_blank"><?= h(basename($path)) ?></a>
+                </div>
+              <?php endif; ?>
+            <?php else: ?>
+              <div class="preview-empty">No file uploaded yet</div>
+            <?php endif; ?>
+          </div>
+
+          <?php if ($rk !== $SCANNED_KEY): ?>
+          <!-- Review Status for selected requirement -->
+          <?php
+            $activeFile = $filesByKey[$rk] ?? null;
+            $activeStatus = strtoupper($activeFile["review_status"] ?? "PENDING");
+            $activeReason = $activeFile["resubmit_reason"] ?? "";
+          ?>
+          <div class="review-section">
+            <div class="review-label">Review Status</div>
+            <div class="review-controls">
+              <select class="review-select status-select" name="req_status[<?= h($rk) ?>]" data-key="<?= h($rk) ?>" form="verifyForm">
+                <option value="PENDING"  <?= $activeStatus==="PENDING" ? "selected" : "" ?>>PENDING</option>
+                <option value="VERIFIED" <?= $activeStatus==="VERIFIED" ? "selected" : "" ?>>VERIFIED</option>
+                <option value="RESUBMIT" <?= $activeStatus==="RESUBMIT" ? "selected" : "" ?>>RESUBMIT</option>
+              </select>
+            </div>
+            <div class="resubmit-reason-wrap" id="reason-<?= h($rk) ?>" style="display:<?= $activeStatus==="RESUBMIT" ? "block" : "none" ?>;">
+              <textarea class="resubmit-textarea" name="resubmit_reason[<?= h($rk) ?>]" placeholder="Reason for resubmission..." maxlength="500" form="verifyForm"><?= h($activeReason) ?></textarea>
+            </div>
+          </div>
           <?php endif; ?>
 
-        <?php else: ?>
-          <div class="preview-empty">No file uploaded yet.</div>
-        <?php endif; ?>
+          <!-- File Actions -->
+          <div class="file-actions">
+            <form method="POST" action="verify_request.php" enctype="multipart/form-data" class="upload-row">
+              <?= csrf_field() ?>
+              <input type="hidden" name="request_id" value="<?= (int)$request_id ?>">
+              <input type="hidden" name="rk" value="<?= h($rk) ?>">
+              <input type="hidden" name="action" value="upload">
+              <label class="file-label">
+                <input class="file-input" type="file" name="req_file" accept="image/*,application/pdf" required>
+                <span class="file-label-text">Choose file...</span>
+              </label>
+              <button type="submit" class="btn-upload">Upload</button>
+            </form>
+
+            <form id="deleteFileForm" method="POST" action="verify_request.php">
+              <?= csrf_field() ?>
+              <input type="hidden" name="request_id" value="<?= (int)$request_id ?>">
+              <input type="hidden" name="rk" value="<?= h($rk) ?>">
+              <input type="hidden" name="action" value="delete">
+              <button type="button" class="btn-delete" onclick="swalConfirmDanger('Delete File?', 'This file will be permanently removed.', 'Yes, delete', function(){ document.getElementById('deleteFileForm').submit(); })">Delete File</button>
+            </form>
+          </div>
+
+        </div>
       </div>
-    </div>
 
-    <div class="right-actions">
-      <!-- DELETE -->
-      <form id="deleteFileForm" method="POST" action="verify_request.php" class="mini-form">
-        <?= csrf_field() ?>
-        <input type="hidden" name="request_id" value="<?= (int)$request_id ?>">
-        <input type="hidden" name="rk" value="<?= h($rk) ?>">
-        <input type="hidden" name="action" value="delete">
-        <button type="button" class="btn-delete" onclick="swalConfirmDanger('Delete File?', 'This file will be permanently removed.', 'Yes, delete', function(){ document.getElementById('deleteFileForm').submit(); })">DELETE</button>
-      </form>
+    </main>
+  </div>
+</div>
 
-      <!-- UPLOAD -->
-      <form method="POST" action="verify_request.php" enctype="multipart/form-data" class="mini-form upload-form">
-        <?= csrf_field() ?>
-        <input type="hidden" name="request_id" value="<?= (int)$request_id ?>">
-        <input type="hidden" name="rk" value="<?= h($rk) ?>">
-        <input type="hidden" name="action" value="upload">
-        <input class="file-input" type="file" name="req_file" accept="image/*,application/pdf" required>
-        <button type="submit" class="btn-upload">UPLOAD</button>
-      </form>
-
-      <div class="arrows">
-        <?php if ($prevKey): ?>
-          <a class="arrow" href="verify_request.php?id=<?= (int)$request_id ?>&rk=<?= urlencode($prevKey) ?>">&lt;</a>
-        <?php else: ?>
-          <span class="arrow disabled">&lt;</span>
-        <?php endif; ?>
-
-        <?php if ($nextKey): ?>
-          <a class="arrow" href="verify_request.php?id=<?= (int)$request_id ?>&rk=<?= urlencode($nextKey) ?>">&gt;</a>
-        <?php else: ?>
-          <span class="arrow disabled">&gt;</span>
-        <?php endif; ?>
-      </div>
-    </div>
-
-    <div class="bottom-actions">
-      <button class="btn-save" type="submit" form="verifyForm">SAVE</button>
-      <a class="btn-cancel" href="request_management.php">CANCEL</a>
-    </div>
-  </section>
-
-</main>
+<div class="footer-bar"></div>
 
 <script>
-  // Show/hide resubmit reason textarea based on dropdown selection
-  document.querySelectorAll(".status-select").forEach(function(select) {
-    select.addEventListener("change", function() {
-      var key = this.getAttribute("data-key");
-      var reasonWrap = document.getElementById("reason-" + key);
-      if (reasonWrap) {
-        reasonWrap.style.display = (this.value === "RESUBMIT") ? "block" : "none";
-      }
-    });
+function toggleSidebar(){
+  const sb = document.getElementById('sidebar');
+  if(!sb) return;
+  if (window.innerWidth <= 720) {
+    sb.style.display = (sb.style.display === 'none' || sb.style.display === '') ? 'block' : 'none';
+  }
+}
+
+// Show/hide resubmit reason textarea
+document.querySelectorAll(".status-select").forEach(function(select) {
+  select.addEventListener("change", function() {
+    var key = this.getAttribute("data-key");
+    var reasonWrap = document.getElementById("reason-" + key);
+    if (reasonWrap) {
+      reasonWrap.style.display = (this.value === "RESUBMIT") ? "block" : "none";
+    }
   });
+});
+
+// File input label
+document.querySelectorAll('.file-input').forEach(function(input) {
+  input.addEventListener('change', function() {
+    var label = this.closest('.file-label').querySelector('.file-label-text');
+    if (this.files.length > 0) {
+      label.textContent = this.files[0].name;
+    }
+  });
+});
 </script>
 </body>
 </html>

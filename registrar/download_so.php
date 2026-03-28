@@ -40,7 +40,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $up->bind_param("i", $soId);
         $up->execute();
         audit_log($conn, "UPDATE", "school_orders", $soId, "Finalized School Order: " . $so["so_number"]);
-        add_log($conn, (int)$so["request_id"], "School Order " . $so["so_number"] . " finalized");
+
+        // Fetch reference number and document type for notification
+        $refSt = $conn->prepare("SELECT reference_no, document_type FROM requests WHERE id = ? LIMIT 1");
+        $refSt->bind_param("i", $so["request_id"]);
+        $refSt->execute();
+        $refRow = $refSt->get_result()->fetch_assoc();
+        $refNo = $refRow["reference_no"] ?? "N/A";
+        $docType = strtoupper($refRow["document_type"] ?? "");
+        $registrar_anon = get_registrar_id($conn, $registrarId);
+        notify_user($conn, (int)$so["request_id"], "Reference Number: " . $refNo . " (" . $docType . ") — School Order " . $so["so_number"] . " finalized. Processed by " . $registrar_anon);
+
         swal_flash("success", "Finalized", "School Order has been finalized.");
         header("Location: download_so.php?id=" . $soId);
         exit();
@@ -51,7 +61,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $up->bind_param("i", $soId);
         $up->execute();
         audit_log($conn, "UPDATE", "school_orders", $soId, "Voided School Order: " . $so["so_number"]);
-        add_log($conn, (int)$so["request_id"], "School Order " . $so["so_number"] . " voided");
+
+        // Fetch reference number and document type for notification
+        $refSt = $conn->prepare("SELECT reference_no, document_type FROM requests WHERE id = ? LIMIT 1");
+        $refSt->bind_param("i", $so["request_id"]);
+        $refSt->execute();
+        $refRow = $refSt->get_result()->fetch_assoc();
+        $refNo = $refRow["reference_no"] ?? "N/A";
+        $docType = strtoupper($refRow["document_type"] ?? "");
+        $registrar_anon = get_registrar_id($conn, $registrarId);
+        notify_user($conn, (int)$so["request_id"], "Reference Number: " . $refNo . " (" . $docType . ") — School Order " . $so["so_number"] . " voided. Processed by " . $registrar_anon);
+
         swal_flash("success", "Voided", "School Order has been voided.");
         header("Location: download_so.php?id=" . $soId);
         exit();
@@ -215,6 +235,7 @@ function soBadgeClass($s) {
 
         <div class="sb-section-title">SETTINGS</div>
         <nav class="sb-nav">
+            <a class="sb-item" href="../mis/system_settings.php"><span class="sb-icon">&#9881;</span>System Settings</a>
             <a class="sb-item" href="#" onclick="event.preventDefault(); swalConfirm('Logout', 'Are you sure you want to log out?', 'Yes, log out', function(){ window.location='../auth/logout.php'; })"><span class="sb-icon">&#x238B;</span>Logout</a>
         </nav>
     </aside>

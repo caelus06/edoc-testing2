@@ -182,10 +182,9 @@ if ($step === 2) {
           $ins->execute();
           $newRequestId = (int)$conn->insert_id;
 
-          $msg = "REGISTRAR CREATED REQUEST ({$reference_no})";
-          $lg = $conn->prepare("INSERT INTO request_logs (request_id, message) VALUES (?, ?)");
-          $lg->bind_param("is", $newRequestId, $msg);
-          $lg->execute();
+          $registrar_anon = get_registrar_id($conn, (int)$_SESSION["user_id"]);
+          $msg = "Reference Number: " . $reference_no . " (" . strtoupper($document_type) . ") — Request created on your behalf. Processed by " . $registrar_anon;
+          notify_user($conn, $newRequestId, $msg);
 
           audit_log($conn, "INSERT", "requests", $newRequestId, "Registrar created request " . $reference_no);
 
@@ -228,10 +227,12 @@ if ($step === 2) {
       <a class="sb-item" href="track_progress.php"><span class="sb-icon">📍</span>Track Progress</a>
       <a class="sb-item" href="document_management.php"><span class="sb-icon">📄</span>Document Management</a>
       <a class="sb-item" href="create_document.php"><span class="sb-icon">➕</span>Create Document</a>
+      <a class="sb-item" href="non_compliant.php"><span class="sb-icon">&#9888;</span>Non-Compliant Users</a>
     </nav>
 
     <div class="sb-section-title">SETTINGS</div>
     <nav class="sb-nav">
+      <a class="sb-item" href="../mis/system_settings.php"><span class="sb-icon">&#9881;</span>System Settings</a>
       <a class="sb-item" href="#" onclick="event.preventDefault(); swalConfirm('Logout', 'Are you sure you want to log out?', 'Yes, log out', function(){ window.location='../auth/logout.php'; })"><span class="sb-icon">⎋</span>Logout</a>
     </nav>
   </aside>
