@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Enhance the user-side of the eDoc system with cancel requests, change password, editable review info, personalized welcome banner, and a full UI redesign using Bebas Neue/Metropolis fonts with Bootstrap Icons.
+**Goal:** Enhance the user-side of the eDoc system with cancel requests, change password, editable review info, personalized welcome banner, and a full UI redesign using Bebas Neue/Poppins fonts with Bootstrap Icons.
 
 **Architecture:** PHP procedural backend with vanilla JS frontend. Per-page CSS files (no shared base). SweetAlert2 for dialogs. CSRF protection on all POST endpoints. Audit logging on all state changes.
 
-**Tech Stack:** PHP 8+, MySQL/MariaDB, vanilla JavaScript (fetch API), CSS3 custom properties, Google Fonts CDN (Bebas Neue), local @font-face (Metropolis), Bootstrap Icons CDN, SweetAlert2 CDN.
+**Tech Stack:** PHP 8+, MySQL/MariaDB, vanilla JavaScript (fetch API), CSS3 custom properties, Google Fonts CDN (Bebas Neue + Poppins), Bootstrap Icons CDN, SweetAlert2 CDN.
 
 **Spec:** `docs/superpowers/specs/2026-03-31-user-side-enhancements-design.md`
 
@@ -17,10 +17,6 @@
 ### Files to Create
 | File | Responsibility |
 |------|---------------|
-| `assets/fonts/Metropolis-Regular.woff2` | Body font (regular weight) |
-| `assets/fonts/Metropolis-Medium.woff2` | Body font (medium weight) |
-| `assets/fonts/Metropolis-Bold.woff2` | Body font (bold weight) |
-| `assets/fonts/Metropolis-Light.woff2` | Body font (light weight) |
 | `user/request_cancel.php` | Cancel PENDING request endpoint |
 | `user/change_password.php` | Change password endpoint |
 | `assets/css/track.css` | Track page dedicated styles (file exists but is unused; will be rewritten) |
@@ -41,35 +37,15 @@
 
 ---
 
-## Task 1: Font Setup — Download Metropolis & Verify Google Fonts
+## Task 1: SKIPPED — Fonts via Google Fonts CDN
 
-**Files:**
-- Create: `assets/fonts/Metropolis-Regular.woff2`, `Metropolis-Medium.woff2`, `Metropolis-Bold.woff2`, `Metropolis-Light.woff2`
+Poppins replaced with Poppins (Google Fonts). Both Bebas Neue and Poppins loaded via single CDN import in each CSS file:
 
-- [ ] **Step 1: Create fonts directory and download Metropolis**
-
-```bash
-mkdir -p assets/fonts
+```css
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@300;400;500;600;700&display=swap');
 ```
 
-Download Metropolis font files from the open-source repository (https://github.com/chrismsimpson/Metropolis). We need .woff2 files for: Regular, Medium, Bold, Light. Place them in `assets/fonts/`.
-
-If .woff2 is not available directly, download .otf/.ttf and convert using an online tool or `woff2_compress`.
-
-- [ ] **Step 2: Verify font files exist**
-
-```bash
-ls -la assets/fonts/
-```
-
-Expected: At least Metropolis-Regular.woff2 and Metropolis-Bold.woff2 present.
-
-- [ ] **Step 3: Commit**
-
-```bash
-git add assets/fonts/
-git commit -m "feat: add Metropolis font files for UI redesign"
-```
+No local font files needed. Font variable: `--font-body: 'Poppins', Arial, sans-serif;`
 
 ---
 
@@ -82,39 +58,10 @@ This task rewrites the dashboard CSS with new fonts, welcome banner gradient, ca
 
 - [ ] **Step 1: Replace CSS variables and global styles (lines 1-40)**
 
-Replace the `:root` block and global styles. Add Google Fonts import for Bebas Neue, @font-face for Metropolis, Bootstrap Icons CDN import, and updated variables:
+Replace the `:root` block and global styles. Add Google Fonts import for Bebas Neue, @font-face for Poppins, Bootstrap Icons CDN import, and updated variables:
 
 ```css
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
-
-@font-face {
-  font-family: 'Metropolis';
-  src: url('../fonts/Metropolis-Regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Metropolis';
-  src: url('../fonts/Metropolis-Medium.woff2') format('woff2');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Metropolis';
-  src: url('../fonts/Metropolis-Bold.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Metropolis';
-  src: url('../fonts/Metropolis-Light.woff2') format('woff2');
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@300;400;500;600;700&display=swap');
 
 :root {
   --primary: #002699;
@@ -129,7 +76,7 @@ Replace the `:root` block and global styles. Add Google Fonts import for Bebas N
   --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
   --radius: 12px;
   --font-heading: 'Bebas Neue', Arial, Impact, sans-serif;
-  --font-body: 'Metropolis', Arial, sans-serif;
+  --font-body: 'Poppins', Arial, sans-serif;
   --status-pending: #F59E0B;
   --status-approved: #10B981;
   --status-processing: #3B82F6;
@@ -343,7 +290,7 @@ Open dashboard in browser and visually inspect. No broken layouts.
 
 ```bash
 git add assets/css/user_dashboard.css
-git commit -m "feat: restyle dashboard CSS with Bebas Neue, Metropolis, card layouts"
+git commit -m "feat: restyle dashboard CSS with Bebas Neue, Poppins, card layouts"
 ```
 
 ---
@@ -600,7 +547,7 @@ git commit -m "feat: add cancel request endpoint for PENDING requests"
 
 - [ ] **Step 1: Create track.css**
 
-Create a full CSS file for the track page with the same font imports, @font-face declarations, and CSS variables as user_dashboard.css (copy the root block). Then add track-specific styles:
+Create a full CSS file for the track page with the same Google Fonts @import and CSS variables as user_dashboard.css (copy the root block). Then add track-specific styles:
 
 ```css
 /* Same @import, @font-face, :root, *, body, h1-h6 block as user_dashboard.css */
@@ -778,7 +725,7 @@ git commit -m "feat: restyle track page, add cancel button, standardize topbar"
 
 - [ ] **Step 1: Update profile.css with new fonts and variables**
 
-Replace the global styles and add the same @import, @font-face, :root block as other CSS files. Update card styling, info rows, buttons with var(--font-body), var(--font-heading), var(--radius). Add change password section styles:
+Replace the global styles and add the same Google Fonts @import and :root block as other CSS files. Update card styling, info rows, buttons with var(--font-body), var(--font-heading), var(--radius). Add change password section styles:
 
 ```css
 .password-card {
@@ -1556,7 +1503,7 @@ git commit -m "feat: final UX polish pass — consistent buttons, inputs, focus 
 
 | Task | Description | Priority |
 |------|-------------|----------|
-| 1 | Font setup (Metropolis files) | Foundation |
+| 1 | Font setup (Poppins files) | Foundation |
 | 2 | Dashboard CSS restyle | High |
 | 3 | Dashboard PHP (welcome banner, cancel, icons) | High |
 | 4 | Cancel request backend | High-Mid |
