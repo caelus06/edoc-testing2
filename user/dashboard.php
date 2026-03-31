@@ -345,6 +345,7 @@ function page_url($pageNum, $q, $status){
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="notifTitle">
     <button class="close-x" id="notifClose" type="button">×</button>
     <h3 id="notifTitle">NOTIFICATION</h3>
+    <div class="notif-list">
 
     <?php if (empty($notifs)): ?>
       <div class="notif-item">
@@ -361,6 +362,7 @@ function page_url($pageNum, $q, $status){
         </div>
       <?php endforeach; ?>
     <?php endif; ?>
+    </div>
 
   </div>
 </div>
@@ -382,11 +384,13 @@ function page_url($pageNum, $q, $status){
 
   function openNotif(){
     backdrop.style.display = "flex";
+    document.body.style.overflow = "hidden";
     markSeen(); // ✅ reset unread count when opened
   }
 
   function closeNotif(){
     backdrop.style.display = "none";
+    document.body.style.overflow = "";
   }
 
   notifBtn?.addEventListener("click", openNotif);

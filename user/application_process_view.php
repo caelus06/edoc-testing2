@@ -91,6 +91,7 @@ if ($badgeCount > 99) $badgeCount = 99;
   <meta charset="UTF-8" />
   <title>Application Process</title>
   <link rel="stylesheet" href="../assets/css/user_application_process_view.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <?php include __DIR__ . "/../includes/swal_header.php"; ?>
   <style>
     .return-btn{ margin-top:14px; display:inline-block; padding:10px 18px;
@@ -109,19 +110,19 @@ if ($badgeCount > 99) $badgeCount = 99;
 
 <header class="topbar">
   <div class="brand">
-    <div class="logo">📄</div>
+    <div class="logo"><i class="bi bi-file-earmark-text"></i></div>
     <div>E-Doc Document Requesting System</div>
   </div>
   <div class="top-icons">
     <span class="notif-wrap">
-      <button class="icon-btn" id="notifBtn" title="Notifications" type="button">🔔</button>
+      <button class="icon-btn" id="notifBtn" title="Notifications" type="button"><i class="bi bi-bell"></i></button>
       <?php if ($badgeCount > 0): ?>
         <span class="notif-badge" id="notifBadge"><?= (int)$badgeCount ?></span>
       <?php endif; ?>
     </span>
 
-    <div class="icon-btn" title="Account"><a href="profile.php">👤</a></div>
-    <button class="icon-btn" title="Logout" onclick="swalConfirm('Logout', 'Are you sure you want to log out?', 'Yes, log out', function(){ window.location='../auth/logout.php'; })">⎋</button>
+    <div class="icon-btn" title="Account"><a href="profile.php"><i class="bi bi-person-circle"></i></a></div>
+    <button class="icon-btn" title="Logout" onclick="swalConfirm('Logout', 'Are you sure you want to log out?', 'Yes, log out', function(){ window.location='../auth/logout.php'; })"><i class="bi bi-box-arrow-right"></i></button>
   </div>
 </header>
 
@@ -132,10 +133,10 @@ if ($badgeCount > 99) $badgeCount = 99;
   </section>
 
   <section class="panel">
-    <a class="exit-btn" href="dashboard.php">EXIT</a>
+    <a class="exit-btn" href="dashboard.php"><i class="bi bi-x-lg"></i> EXIT</a>
     
     <div class="note">
-      <span class="pin">📌</span><b>Please note: Read carefully the requirement</b><br>
+      <span class="pin"><i class="bi bi-pin-angle-fill"></i></span><b>Please note: Read carefully the requirement</b><br>
       Digital uploads are required for verification, but all official requirements must be submitted once verified and approved to the Registrar's Office
     </div>
 
@@ -199,7 +200,7 @@ if ($badgeCount > 99) $badgeCount = 99;
         <?php endforeach; ?>
       <?php endif; ?>
 
-      <a class="return-btn" href="application_process.php">RETURN</a>
+      <a class="btn prev" href="application_process.php" style="text-decoration:none;display:inline-block;margin-top:14px;"><i class="bi bi-arrow-left"></i> RETURN</a>
     </div>
   </section>
 </main>
@@ -210,7 +211,7 @@ if ($badgeCount > 99) $badgeCount = 99;
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="notifTitle">
     <button class="close-x" id="notifClose" type="button">×</button>
     <h3 id="notifTitle">NOTIFICATION</h3>
-
+    <div class="notif-list">
     <?php if (empty($notifs)): ?>
       <div class="notif-item">
         <div class="notif-title">No notifications yet</div>
@@ -226,7 +227,7 @@ if ($badgeCount > 99) $badgeCount = 99;
         </div>
       <?php endforeach; ?>
     <?php endif; ?>
-
+    </div>
   </div>
 </div>
 
@@ -246,11 +247,13 @@ if ($badgeCount > 99) $badgeCount = 99;
 
   function openNotif(){
     backdrop.style.display = "flex";
-    markSeen(); // ✅ reset unread count when opened
+    document.body.style.overflow = "hidden";
+    markSeen(); // reset unread count when opened
   }
 
   function closeNotif(){
     backdrop.style.display = "none";
+    document.body.style.overflow = "";
   }
 
   notifBtn?.addEventListener("click", openNotif);
@@ -262,13 +265,6 @@ if ($badgeCount > 99) $badgeCount = 99;
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeNotif();
-  });
-
-
-document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
-      notifBackdrop.style.display = "none";
-    }
   });
 </script>
 

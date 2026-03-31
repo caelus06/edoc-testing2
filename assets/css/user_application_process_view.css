@@ -1,6 +1,5 @@
-/* --- Academic Professional Palette ---
-   Consistent with User Request and Review Design
----------------------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@300;400;500;600;700&display=swap');
+
 :root {
   --primary: #002699;
   --primary-hover: #001f80;
@@ -10,10 +9,11 @@
   --text-main: #1E293B;
   --text-muted: #64748B;
   --border: #E2E8F0;
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
- 
-  /* Status Colors */
+  --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+  --radius: 12px;
+  --font-heading: 'Bebas Neue', Arial, Impact, sans-serif;
+  --font-body: 'Poppins', Arial, sans-serif;
   --status-pending: #F59E0B;
   --status-approved: #10B981;
   --status-processing: #3B82F6;
@@ -21,16 +21,24 @@
   --status-completed: #6366F1;
 }
 
-
-* { box-sizing: border-box; transition: all 0.2s ease; }
-
+*, *::before, *::after { box-sizing: border-box; }
 
 body {
   margin: 0;
-  font-family: 'Inter', -apple-system, sans-serif;
+  font-family: var(--font-body);
   background: var(--bg-color);
   color: var(--text-main);
   line-height: 1.5;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  letter-spacing: 0.5px;
+}
+
+button:focus-visible, a:focus-visible {
+  outline: 2px solid var(--secondary);
+  outline-offset: 2px;
 }
 
 
@@ -92,7 +100,7 @@ body {
   width: 100%;
   max-width: 420px;
   max-height: 80vh;
-  overflow-y: auto;
+  overflow: hidden;
   background: var(--surface);
   border-radius: 16px;
   border: 1px solid var(--border);
@@ -104,7 +112,8 @@ body {
 }
 
 
-.modal h3 { margin: 0 0 20px; font-size: 1.25rem; font-weight: 800; color: var(--primary); }
+.modal h3 { margin: 0 0 20px; font-size: 1.25rem; font-weight: 800; color: var(--primary); flex-shrink: 0; }
+.notif-list { overflow-y: auto; flex: 1; min-height: 0; }
 
 
 .close-x {

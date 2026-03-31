@@ -43,19 +43,19 @@ $_SESSION["upload_doc_type"] = $document_type;
   <meta charset="UTF-8">
   <title>Upload Requirements</title>
   <link rel="stylesheet" href="../assets/css/upload_requirements.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <?php include __DIR__ . "/../includes/swal_header.php"; ?>
 </head>
 <body>
 
 <header class="topbar">
   <div class="brand">
-    <div class="logo">📄</div>
     <div>E-Doc Document Requesting System</div>
   </div>
   <div class="top-icons">
-    <button class="icon-btn">🔔</button>
-    <div class="icon-btn"><a href="profile.php">👤</a></div>
-    <div class="icon-btn"><a href="../auth/logout.php">⎋</a></div>
+    <div class="icon-btn" title="Account"><a href="profile.php"><i class="bi bi-person-circle"></i></a></div>
+    <div class="icon-btn" title="Dashboard"><a href="dashboard.php"><i class="bi bi-house"></i></a></div>
+    <button class="icon-btn" title="Logout" onclick="swalConfirm('Logout', 'Are you sure you want to log out?', 'Yes, log out', function(){ window.location='../auth/logout.php'; })"><i class="bi bi-box-arrow-right"></i></button>
   </div>
 </header>
 
@@ -66,7 +66,7 @@ $_SESSION["upload_doc_type"] = $document_type;
   </section>
 
   <section class="panel">
-    <a class="exit-btn" href="dashboard.php">EXIT</a>
+    <a class="exit-btn" href="dashboard.php"><i class="bi bi-x-lg"></i> EXIT</a>
     <div class="dots">
       <div class="dot"></div><div class="dot active"></div><div class="dot"></div>
     </div>
@@ -105,8 +105,8 @@ $_SESSION["upload_doc_type"] = $document_type;
         </div>
 
         <div class="actions">
-          <a class="btn prev" href="upload_requirements.php" style="text-decoration:none;display:inline-block;">&lt;&lt;&lt; PREVIOUS</a>
-          <a class="btn next" href="upload_requirements_upload.php" style="text-decoration:none;display:inline-block;">NEXT &gt;&gt;&gt;</a>
+          <a class="btn prev" href="upload_requirements.php" style="text-decoration:none;display:inline-block;"><i class="bi bi-arrow-left"></i> PREVIOUS</a>
+          <a class="btn next" href="upload_requirements_upload.php" style="text-decoration:none;display:inline-block;">NEXT <i class="bi bi-arrow-right"></i></a>
         </div>
       </div>
     </div>

@@ -131,10 +131,10 @@ button:focus-visible, a:focus-visible {
   width: 100%;
   max-width: 420px;
   max-height: 80vh;
-  overflow: auto;
+  overflow: hidden;
   background: var(--surface);
   border-radius: var(--radius);
-  border: 2px solid #333;
+  border: 1px solid var(--border);
   position: relative;
   box-shadow: var(--shadow-lg);
   padding: 24px;
@@ -148,8 +148,11 @@ button:focus-visible, a:focus-visible {
   font-size: 1.25rem;
   font-weight: 800;
   color: var(--primary);
+  flex-shrink: 0;
   letter-spacing: 0.5px;
 }
+
+.notif-list { overflow-y: auto; flex: 1; min-height: 0; }
 
 .close-x {
   position: absolute;
