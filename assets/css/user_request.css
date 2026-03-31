@@ -1,4 +1,5 @@
-/* --- Academic Professional Palette (Consolidated Design) --- */
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@300;400;500;600;700&display=swap');
+
 :root {
   --primary: #002699;
   --primary-hover: #001f80;
@@ -8,18 +9,78 @@
   --text-main: #1E293B;
   --text-muted: #64748B;
   --border: #E2E8F0;
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+  --radius: 12px;
+  --font-heading: 'Bebas Neue', Arial, Impact, sans-serif;
+  --font-body: 'Poppins', Arial, sans-serif;
 }
 
-* { box-sizing: border-box; transition: all 0.2s ease; }
+*, *::before, *::after { box-sizing: border-box; }
 
-body { 
-  margin: 0; 
-  font-family: 'Inter', -apple-system, sans-serif; 
-  background: var(--bg-color); 
-  color: var(--text-main); 
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background: var(--bg-color);
+  color: var(--text-main);
   line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  letter-spacing: 0.5px;
+}
+
+button:focus-visible, a:focus-visible {
+  outline: 2px solid var(--secondary);
+  outline-offset: 2px;
+}
+
+/* STEP INDICATOR */
+.step-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 20px 0 24px;
+}
+
+.step-indicator .step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.step-indicator .step.active {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.step-indicator .step .num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: var(--border);
+  color: var(--text-muted);
+}
+
+.step-indicator .step.active .num {
+  background: var(--primary);
+  color: #fff;
+}
+
+.step-indicator .divider {
+  width: 40px;
+  height: 2px;
+  background: var(--border);
 }
 
 /* TOPBAR */

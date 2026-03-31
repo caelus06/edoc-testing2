@@ -74,6 +74,7 @@ if ($badgeCount > 99) $badgeCount = 99;
   <meta charset="UTF-8" />
   <title>Request Document</title>
   <link rel="stylesheet" href="../assets/css/user_request.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <?php include __DIR__ . "/../includes/swal_header.php"; ?>
 </head>
 <body>
@@ -88,14 +89,14 @@ if ($badgeCount > 99) $badgeCount = 99;
   </div>
   <div class="top-icons">
     <span class="notif-wrap">
-      <button class="icon-btn" id="notifBtn" title="Notifications" type="button">🔔</button>
+      <button class="icon-btn" id="notifBtn" title="Notifications" type="button"><i class="bi bi-bell"></i></button>
       <?php if ($badgeCount > 0): ?>
         <span class="notif-badge" id="notifBadge"><?= (int)$badgeCount ?></span>
       <?php endif; ?>
     </span>
 
-    <div class="icon-btn" title="Account"><a href="profile.php">👤</a></div>
-    <button class="icon-btn" title="Logout" style="background:none; border:none; cursor:pointer;" onclick="swalConfirm('Logout', 'Are you sure you want to log out?', 'Yes, log out', function(){ window.location='../auth/logout.php'; })">⎋</button>
+    <div class="icon-btn" title="Account"><a href="profile.php"><i class="bi bi-person-circle"></i></a></div>
+    <button class="icon-btn" title="Logout" onclick="swalConfirm('Logout', 'Are you sure you want to log out?', 'Yes, log out', function(){ window.location='../auth/logout.php'; })"><i class="bi bi-box-arrow-right"></i></button>
   </div>
 </header>
 
@@ -105,6 +106,18 @@ if ($badgeCount > 99) $badgeCount = 99;
     <h1>Request Document</h1>
     <p>Start your application by completing all required fields and reviewing your personal information for accuracy.</p>
   </section>
+
+  <div class="step-indicator">
+    <div class="step active">
+      <span class="num">1</span>
+      <span>Select Document</span>
+    </div>
+    <div class="divider"></div>
+    <div class="step">
+      <span class="num">2</span>
+      <span>Review & Submit</span>
+    </div>
+  </div>
 
   <section class="panel">
     <!-- Changed link to pass a 'clear' parameter to trigger the session unset logic above -->
