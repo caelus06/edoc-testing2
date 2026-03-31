@@ -93,18 +93,6 @@ if ($badgeCount > 99) $badgeCount = 99;
   <link rel="stylesheet" href="../assets/css/user_application_process_view.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <?php include __DIR__ . "/../includes/swal_header.php"; ?>
-  <style>
-    .return-btn{ margin-top:14px; display:inline-block; padding:10px 18px;
-      background:#0b3a5a; color:#fff; border-radius:8px; text-decoration:none; font-weight:900; font-size:12px;}
-    .doc-head{ display:flex; justify-content:space-between; align-items:flex-start; margin-top:10px;}
-    .doc-title{ font-weight:900; font-size:18px; }
-    .workdays{ font-size:11px; margin-top:6px; }
-    .section h3{ font-size:13px; font-weight:900; margin:12px 0 6px; }
-    .process-item { margin-bottom: 12px; white-space: pre-line; font-size: 13px; line-height: 1.6; }
-    .reminder-block { margin-bottom: 10px; }
-    .reminder-title { font-weight: 700; font-size: 12px; margin-bottom: 3px; }
-    .reminder-detail { font-size: 12px; white-space: pre-line; line-height: 1.55; }
-  </style>
 </head>
 <body>
 
@@ -133,74 +121,86 @@ if ($badgeCount > 99) $badgeCount = 99;
   </section>
 
   <section class="panel">
-    <a class="exit-btn" href="dashboard.php"><i class="bi bi-x-lg"></i> EXIT</a>
-    
-    <div class="note">
-      <span class="pin"><i class="bi bi-pin-angle-fill"></i></span><b>Please note: Read carefully the requirement</b><br>
-      Digital uploads are required for verification, but all official requirements must be submitted once verified and approved to the Registrar's Office
+    <div class="panel-header">
+      <div class="doc-head">
+        <div>
+          <h2 class="doc-title"><?= htmlspecialchars(strtoupper($document_type)) ?></h2>
+          <?php if ($workingDays): ?>
+            <span class="workdays-pill"><i class="bi bi-clock"></i> <?= htmlspecialchars($workingDays) ?></span>
+          <?php endif; ?>
+        </div>
+        <a class="exit-btn" href="dashboard.php"><i class="bi bi-x-lg"></i> EXIT</a>
+      </div>
     </div>
 
-    <div class="section">
-      <h3>Documentary Requirements</h3>
-      <div class="small-note">Read the process carefully and review the full list of requirements before uploading your documents.</div>
-
-      <div class="doc-head">
-        <div class="doc-title"><?= htmlspecialchars(strtoupper($document_type)) ?></div>
-        <div class="workdays"><?= htmlspecialchars($workingDays) ?></div>
+    <div class="note">
+      <i class="bi bi-info-circle"></i>
+      <div>
+        <b>Please note: Read carefully the requirement</b>
+        Digital uploads are required for verification, but all official requirements must be submitted once verified and approved to the Registrar's Office.
       </div>
+    </div>
+
+    <!-- Documentary Requirements -->
+    <div class="content-section">
+      <h3 class="section-title"><i class="bi bi-file-earmark-check"></i> Documentary Requirements</h3>
+      <p class="section-sub">Review the full list of requirements before uploading your documents.</p>
 
       <?php if (count($titleTypes) === 0): ?>
-    <p>(No requirements configured.)</p>
-<?php else: ?>
-    <?php foreach ($titleTypes as $tt): ?>
-        <?php
+        <p class="empty-msg">No requirements configured.</p>
+      <?php else: ?>
+        <?php foreach ($titleTypes as $tt): ?>
+          <?php
             $title = $tt["title_type"];
             $reqStmt->bind_param("ss", $document_type, $title);
             $reqStmt->execute();
             $reqs = $reqStmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
             if (empty($reqs)) continue;
-            
-            // Start numbering for this section (or use a global counter if preferred)
-            $counter = 1; 
-        ?>
-        
-        <h3 style="margin-bottom: 5px;"><?= htmlspecialchars($title) ?></h3>
-        
-        <div style="margin-left: 20px; margin-bottom: 20px;">
-            <?php foreach ($reqs as $r): ?>
-                <div class="req-item" style="margin-bottom: 4px;">
-                    <?= $counter++ ?>. &nbsp; <?= htmlspecialchars($r["req_name"]) ?>
+            $counter = 1;
+          ?>
+          <div class="req-card">
+            <div class="req-card-header"><?= htmlspecialchars($title) ?></div>
+            <div class="req-card-body">
+              <?php foreach ($reqs as $r): ?>
+                <div class="req-item">
+                  <span class="req-num"><?= $counter++ ?></span>
+                  <span><?= htmlspecialchars($r["req_name"]) ?></span>
                 </div>
-            <?php endforeach; ?>
+              <?php endforeach; ?>
 
-            <?php if (!empty($reminders)): ?>
+              <?php if (!empty($reminders)): ?>
                 <?php foreach ($reminders as $rem): ?>
-                    <?php 
-                        // Only show if the reminder's title_type matches the current section title
-                        if (trim($rem["title_type"]) === trim($title)): 
-                    ?>
-                        <div class="reminder-block" style="margin-top: 5px; margin-left: 15px;">
-                            <strong>Reminder Details:</strong> 
-                            <em><?= htmlspecialchars($rem["details"]) ?></em>
-                        </div>
-                    <?php endif; ?>
+                  <?php if (trim($rem["title_type"]) === trim($title)): ?>
+                    <div class="reminder-block">
+                      <i class="bi bi-exclamation-triangle"></i>
+                      <em><?= htmlspecialchars($rem["details"]) ?></em>
+                    </div>
+                  <?php endif; ?>
                 <?php endforeach; ?>
-            <?php endif; ?>
-        </div>
-
-    <?php endforeach; ?>
-<?php endif; ?>
-
-      <!-- ── Application Process ── -->
-      <?php if (!empty($appProcessItems)): ?>
-        <h3>Application Process</h3>
-        <?php foreach ($appProcessItems as $ap): ?>
-          <div class="process-item"><?= htmlspecialchars($ap["details"]) ?></div>
+              <?php endif; ?>
+            </div>
+          </div>
         <?php endforeach; ?>
       <?php endif; ?>
+    </div>
 
-      <a class="btn prev" href="application_process.php" style="text-decoration:none;display:inline-block;margin-top:14px;"><i class="bi bi-arrow-left"></i> RETURN</a>
+    <!-- Application Process -->
+    <?php if (!empty($appProcessItems)): ?>
+      <div class="content-section">
+        <h3 class="section-title"><i class="bi bi-list-ol"></i> Application Process</h3>
+        <div class="process-list">
+          <?php foreach ($appProcessItems as $i => $ap): ?>
+            <div class="process-step">
+              <span class="step-num"><?= $i + 1 ?></span>
+              <span class="step-text"><?= htmlspecialchars($ap["details"]) ?></span>
+            </div>
+          <?php endforeach; ?>
+        </div>
+      </div>
+    <?php endif; ?>
+
+    <div class="actions">
+      <a class="btn prev" href="application_process.php"><i class="bi bi-arrow-left"></i> RETURN</a>
     </div>
   </section>
 </main>
