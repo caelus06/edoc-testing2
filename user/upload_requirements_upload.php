@@ -417,8 +417,8 @@ if ($badgeCount > 99) $badgeCount = 99;
     <?php endif; ?>
 
     <div class="actions">
-      <button class="btn pre" onclick="history.back()">PREVIOUS</button>
-      <a class="btn save" href="dashboard.php" style="text-decoration:none;">DONE</a>
+      <button class="btn pre" onclick="history.back()"><i class="bi bi-arrow-left"></i> PREVIOUS</button>
+      <a class="btn save" href="dashboard.php" style="text-decoration:none;"><i class="bi bi-check-lg"></i> DONE</a>
     </div>
   </section>
 </main>
