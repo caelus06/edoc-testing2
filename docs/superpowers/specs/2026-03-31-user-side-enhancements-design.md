@@ -9,7 +9,7 @@
 
 ### Fonts
 - **Headings:** Bebas Neue via Google Fonts CDN
-- **Body:** Metropolis via local `@font-face` (files in `/assets/fonts/`)
+- **Body:** Metropolis via local `@font-face` (files in `/assets/fonts/`). Source: open-source font by Chris Simpson — download .woff2/.woff files and place in `/assets/fonts/`
 - **Fallbacks:** Arial, Impact, sans-serif
 
 ### CSS Strategy
@@ -49,7 +49,7 @@ Replace the existing `.panel.welcome` section in `dashboard.php` (currently line
 ### Data Sources
 - First name: queried from `users` table via `$_SESSION["user_id"]` (already fetched on dashboard)
 - Date: PHP `date('l, F j, Y.')` formatted
-- Role: hardcoded "Student" for user-side
+- Role: hardcoded "Student" for user-side (all USER-role accounts are treated as students; alumni distinction is not needed for now)
 
 ---
 
@@ -71,7 +71,7 @@ Replace the existing `.panel.welcome` section in `dashboard.php` (currently line
 4. UPDATE `requests` SET `status = 'CANCELLED'`
 5. INSERT into `request_logs`: "Request cancelled by user"
 6. Record `audit_log` entry
-7. Redirect back with SweetAlert success message
+7. Redirect back to HTTP referer (dashboard or track page) with SweetAlert success message
 
 ### Important
 - No hard delete — record stays in database as CANCELLED
@@ -136,12 +136,17 @@ Shows user info as read-only text before submitting a document request.
 ### Not Editable
 - email (too sensitive for casual inline editing)
 
-### Backend (`profile_update.php`)
-1. CSRF token verification
-2. Validate and sanitize all input fields
-3. UPDATE `users` table
-4. Record `audit_log` entry
-5. Return success/error response (JSON for AJAX or redirect)
+### Backend
+Reuse the existing `user/profile_update.php` endpoint (already handles profile updates from `profile.php`). Modifications needed:
+1. Add JSON response support: if request includes `Accept: application/json` header or an `ajax=1` parameter, return JSON instead of redirect
+2. Exclude `email` from the editable fields when called from request_review context
+3. Convert empty/"N/A" values to NULL before saving (fix existing data pollution bug)
+
+### Inline Edit Approach
+- Use AJAX (fetch API) to submit the form — avoids losing `$_SESSION["req"]` data from a full page redirect
+- Include CSRF token in the fetch body (using existing `csrf_token()` from helpers.php)
+- On success: update displayed text values in-place, switch back to read-only mode
+- On error: show SweetAlert error message
 
 ---
 
@@ -161,12 +166,18 @@ Shows user info as read-only text before submitting a document request.
 ### Request Flow (`request.php`, `request_review.php`)
 - Form inputs: rounded corners, clear focus states (blue outline), consistent sizing
 - Editable review section (Section 5)
-- Step indicator: "Step 1 of 2", "Step 2 of 2"
+- Step indicator: `request.php` = "Step 1 of 2", `request_review.php` = "Step 2 of 2"
 
-### Track Page (`track.php`)
+### Track Page (`track.php` / currently uses `dashboard.css`)
+- Create a new `assets/css/track.css` for track-page-specific styles
 - Card layout for request details
 - Timeline with better visual hierarchy
 - Cancel button for PENDING requests
+- Add `CANCELLED` case to the `status_class()` function in track.php
+
+### Navigation Standardization
+- Ensure all user pages have consistent topbar (brand, notification bell, profile link, logout)
+- Currently `track.php` lacks notification bell and profile link — add them
 
 ### UX Consistency (All User Pages)
 - **Buttons:** consistent padding, rounded corners, hover (darken/lighten), focus ring (outline)
@@ -194,14 +205,15 @@ Shows user info as read-only text before submitting a document request.
 - `assets/fonts/` — Metropolis font files (.woff2, .woff)
 - `user/request_cancel.php` — cancel request endpoint
 - `user/change_password.php` — change password endpoint
-- `user/profile_update.php` — profile update endpoint (for request review editing)
+- `assets/css/track.css` — track page styles (currently uses dashboard.css)
 
 ## Files to Modify
 - `user/dashboard.php` — welcome banner, cancel buttons, UI restyle
 - `user/profile.php` — change password section, UI restyle
+- `user/profile_update.php` — add JSON response support, fix N/A bug, exclude email from request_review context
 - `user/request.php` — UI restyle, step indicator
-- `user/request_review.php` — editable info section, UI restyle
-- `user/track.php` — cancel button, UI restyle
+- `user/request_review.php` — editable info section (AJAX), UI restyle
+- `user/track.php` — cancel button, CANCELLED status_class, standardize topbar, UI restyle
 - `assets/css/user_dashboard.css` — full restyle
 - `assets/css/profile.css` — full restyle
-- Per-page CSS for request flow and track pages
+- Per-page CSS for request flow pages
