@@ -121,7 +121,7 @@ if ($badgeCount > 99) $badgeCount = 99;
 
   <section class="panel">
     <!-- Changed link to pass a 'clear' parameter to trigger the session unset logic above -->
-      <a class="exit-btn" href="request.php?clear=1">EXIT</a>
+      <a class="exit-btn" href="request.php?clear=1"><i class="bi bi-x-lg"></i> EXIT</a>
 
     <div class="h2">Application Details</div>
     <p class="sub">Kindly complete all required fields to ensure accurate processing of your request</p>
@@ -154,11 +154,11 @@ if ($badgeCount > 99) $badgeCount = 99;
             value="<?= htmlspecialchars($saved_req['purpose'] ?? '') ?>">
 
       <label class="label">Number of Copies: *</label>
-      <input type="number" name="copies" min="1" value="1" max="5" required 
+      <input type="number" name="copies" min="1" max="5" required
             value="<?= htmlspecialchars($saved_req['copies'] ?? '1') ?>">
 
       <div class="actions">
-        <button class="btn next" type="submit">NEXT &gt;&gt;&gt;</button>
+        <button class="btn next" type="submit">NEXT <i class="bi bi-arrow-right"></i></button>
       </div>
     </form>
   </section>
