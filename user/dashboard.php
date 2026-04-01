@@ -162,6 +162,7 @@ function page_url($pageNum, $q, $status){
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>User Dashboard</title>
   <link rel="stylesheet" href="../assets/css/user_dashboard.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -171,10 +172,6 @@ function page_url($pageNum, $q, $status){
 
 <header class="topbar">
   <div class="brand">
-    <div class="logo">
-      <!-- Optional small logo Waiting for design -->
-      <!-- <img src="assets/img/edoc-logo.jpeg">  -->
-    </div>
     <div>E-Doc Document Requesting System</div>
   </div>
   <div class="top-icons">
@@ -287,20 +284,20 @@ function page_url($pageNum, $q, $status){
               $st = strtoupper($r["status"] ?? "PENDING");
             ?>
             <tr>
-              <td><?= htmlspecialchars(strtoupper($r["document_type"])) ?></td>
-              <td><?= htmlspecialchars($r["reference_no"]) ?></td>
-              <td><?= htmlspecialchars($date) ?></td>
-              <td>
+              <td data-label="Document"><?= htmlspecialchars(strtoupper($r["document_type"])) ?></td>
+              <td data-label="Reference"><?= htmlspecialchars($r["reference_no"]) ?></td>
+              <td data-label="Updated"><?= htmlspecialchars($date) ?></td>
+              <td data-label="Status">
                 <span class="status-pill <?= status_css($st) ?>">
                   <?= htmlspecialchars(ucwords(strtolower($st))) ?>
                 </span>
               </td>
-              <td>
+              <td data-label="Progress">
                 <a class="track-btn" href="track.php?ref=<?= urlencode($r["reference_no"]) ?>">
                   Track Progress &gt;
                 </a>
               </td>
-              <td>
+              <td data-label="Action">
                 <?php if ($st === STATUS_PENDING): ?>
                   <button class="btn-cancel" onclick="cancelRequest(<?= (int)$r['id'] ?>, '<?= h($r['reference_no']) ?>')">
                     <i class="bi bi-x-circle"></i> Cancel

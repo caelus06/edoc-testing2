@@ -58,7 +58,7 @@ button:focus-visible, a:focus-visible {
 .brand {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   font-family: var(--font-heading);
   font-weight: 800;
   color: var(--primary);
@@ -107,6 +107,7 @@ button:focus-visible, a:focus-visible {
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  padding: 20px;
 }
 
 .modal {
@@ -565,20 +566,69 @@ tbody tr:hover { background: #f1f5f9; }
   font-size: 0.8rem;
 }
 
-/* RESPONSIVE */
+/* RESPONSIVE — TABLET */
 @media (max-width: 900px) {
   .cards { grid-template-columns: 1fr; }
-  .actions { grid-template-columns: 1fr; }
+  .actions { grid-template-columns: repeat(2, 1fr); }
   .toolbar { flex-direction: column; }
   .filterbox { width: 100%; }
+  table { min-width: 0; }
+  thead { display: none; }
+  tbody tr {
+    display: block;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    padding: 16px;
+    box-shadow: var(--shadow);
+  }
+  tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #F1F5F9;
+    font-size: 0.85rem;
+  }
+  tbody td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    letter-spacing: 0.025em;
+    flex-shrink: 0;
+    margin-right: 12px;
+  }
+  tbody tr:last-child td { border-bottom: 1px solid #F1F5F9; }
+  tbody td:last-child { border-bottom: none; }
+  .table-wrap { overflow-x: visible; border: none; box-shadow: none; background: transparent; }
+  .pager { flex-wrap: wrap; }
+  .pginfo { width: 100%; text-align: center; margin: 8px 0 0; }
 }
 
+/* RESPONSIVE — MOBILE */
 @media (max-width: 600px) {
-  .topbar { padding: 0.75rem 1rem; }
-  .brand div:last-child { display: none; }
+  .topbar { padding: 0.6rem 1rem; }
+  .brand { font-size: 0.85rem; gap: 6px; }
+  .brand div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+  .top-icons { gap: 8px; }
+  .icon-btn { width: 38px; height: 38px; border-radius: 8px; font-size: 16px; }
+  .container { margin-top: 1rem; padding: 0 12px; margin-bottom: 40px; }
   .welcome-banner { padding: 20px; flex-direction: column; gap: 16px; text-align: center; }
   .welcome-banner h2 { font-size: 1.5rem; }
+  .welcome-banner .role-badge { padding: 10px 16px; }
   .welcome { padding: 25px; }
   .welcome h2 { font-size: 1.5rem; }
-  .container { margin-top: 1rem; }
+  .actions { grid-template-columns: 1fr; gap: 12px; }
+  .actions .card { padding: 20px 16px; }
+  .actions .card i { font-size: 1.5rem; margin-bottom: 8px; }
+  .actions .card h3 { font-size: 1.1rem; }
+  .searchbar { height: 44px; }
+  .filterbox { height: 44px; }
+  .section-title { font-size: 1.1rem; margin: 20px 0 10px; }
+  tbody td { font-size: 0.8rem; }
+  .modal { max-width: 95%; padding: 20px; margin: 0 10px; }
+  .footer-bar { height: 80px; margin-top: 30px; }
 }

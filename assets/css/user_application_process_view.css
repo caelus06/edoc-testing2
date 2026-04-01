@@ -66,6 +66,8 @@ button:focus-visible, a:focus-visible {
 }
 
 
+
+
 .top-icons { display: flex; gap: 12px; align-items: center; }
 
 
@@ -434,9 +436,9 @@ button:focus-visible, a:focus-visible {
   color: var(--text-main);
 }
 
-/* RESPONSIVE DESIGN */
+/* RESPONSIVE — TABLET */
 @media (max-width: 768px) {
-  .container { margin-top: 1rem; }
+  .container { margin-top: 1rem; padding: 0 16px; }
   .panel { padding: 24px 16px; }
   .doc-head { flex-direction: column; }
   .exit-btn { align-self: flex-end; }
@@ -446,10 +448,31 @@ button:focus-visible, a:focus-visible {
   .btn { width: 100%; }
 }
 
+/* RESPONSIVE — MOBILE */
 @media (max-width: 600px) {
-  .topbar { padding: 0.75rem 1rem; }
-  .brand div:last-child { display: none; }
-  .banner h1 { font-size: 1.5rem; }
-  .banner { padding: 20px; }
+  .topbar { padding: 0.6rem 1rem; }
+  .brand { font-size: 0.85rem; gap: 6px; }
+  .brand div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+  .top-icons { gap: 8px; }
+  .icon-btn { width: 38px; height: 38px; border-radius: 8px; font-size: 16px; }
+  .container { padding: 0 12px; margin-bottom: 40px; }
+  .banner h1 { font-size: 1.4rem; }
+  .banner { padding: 16px 20px; }
+  .banner p { font-size: 0.85rem; }
+  .panel { padding: 20px 14px; }
+  .doc-title { font-size: 1.2rem; }
+  .workdays-pill { font-size: 0.75rem; padding: 4px 10px; }
+  .note { padding: 12px 14px; font-size: 0.8rem; }
+  .section-title { font-size: 1rem; }
+  .req-card-header { padding: 10px 14px; font-size: 0.8rem; }
+  .req-card-body { padding: 10px 12px; }
+  .req-item { font-size: 0.8rem; gap: 8px; }
+  .req-num { width: 22px; height: 22px; font-size: 0.65rem; }
+  .process-step { padding: 12px 0; font-size: 0.8rem; gap: 12px; }
+  .step-num { width: 28px; height: 28px; font-size: 0.75rem; }
+  .reminder-block { font-size: 0.75rem; padding: 10px 12px; }
+  .exit-btn { padding: 6px 14px; font-size: 0.7rem; }
+  .btn { padding: 12px 20px; font-size: 0.85rem; }
+  .modal { max-width: 95%; padding: 20px; margin: 0 10px; }
 }
 

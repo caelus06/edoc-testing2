@@ -105,24 +105,6 @@ button:focus-visible, a:focus-visible {
   color: var(--primary);
 }
 
-/* Waiting for design decision on logo, so I commented out the logo styles for now. */
-/* .logo {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.logo img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-} */
-
 .top-icons { display: flex; gap: 12px; align-items: center; }
 
 .icon-btn {
@@ -163,6 +145,7 @@ button:focus-visible, a:focus-visible {
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  padding: 20px;
 }
 
 .modal {
@@ -390,20 +373,31 @@ input::placeholder { color: #94A3B8; }
   text-transform: uppercase;
 }
 
-/* RESPONSIVE */
+/* RESPONSIVE — TABLET */
 @media (max-width: 768px) {
-  .container { margin-top: 1.5rem; }
+  .container { margin-top: 1.5rem; padding: 0 16px; }
   .panel { padding: 30px 20px; }
   .exit-btn { position: static; display: inline-block; margin-bottom: 20px; }
   .actions { justify-content: stretch; }
   .btn { width: 100%; }
 }
 
+/* RESPONSIVE — MOBILE */
 @media (max-width: 600px) {
-  .topbar { padding: 0.75rem 1rem; }
-  .brand div:last-child { display: none; }
+  .topbar { padding: 0.6rem 1rem; }
+  .brand { font-size: 0.85rem; gap: 6px; }
+  .brand div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+  .top-icons { gap: 8px; }
+  .icon-btn { width: 38px; height: 38px; border-radius: 8px; font-size: 16px; }
+  .container { margin-top: 1rem; padding: 0 12px; margin-bottom: 40px; }
   .banner h1 { font-size: 1.5rem; }
   .banner { padding: 20px; }
+  .panel { padding: 24px 16px; }
+  .h2 { font-size: 1.2rem; }
+  .label { margin: 18px 0 6px; font-size: 0.8rem; }
+  select, input[type="text"], input[type="number"], input[type="file"] { padding: 12px 14px; font-size: 0.9rem; }
+  .btn { padding: 14px 20px; font-size: 0.85rem; }
+  .modal { max-width: 95%; padding: 20px; margin: 0 10px; }
 }
 
 #requestForm input[type="text"], 

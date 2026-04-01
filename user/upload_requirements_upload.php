@@ -266,6 +266,7 @@ if ($badgeCount > 99) $badgeCount = 99;
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Upload Requirements</title>
   <link rel="stylesheet" href="../assets/css/user_upload_requirements_upload.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">

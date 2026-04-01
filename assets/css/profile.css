@@ -397,13 +397,60 @@ button:focus-visible, a:focus-visible {
   margin-top: 4px;
 }
 
-/* RESPONSIVE */
+/* RESPONSIVE — TABLET */
 @media (max-width: 1050px) {
   .grid { grid-template-columns: 1fr; }
+  .left-box { min-height: auto; }
+  .preview { height: 300px; }
 }
 
+/* RESPONSIVE — SMALL TABLET */
+@media (max-width: 768px) {
+  .wrapper { padding: 0 16px; margin: 16px auto; }
+  .card { padding: 20px; }
+  .password-card { padding: 20px; }
+  .row {
+    grid-template-columns: 1fr auto;
+    gap: 6px;
+  }
+  .row .label {
+    grid-column: 1 / -1;
+  }
+  .preview { height: 260px; }
+  .left-actions { gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .bottom-actions { flex-direction: column; }
+  .btn.save, .btn.cancel { width: 100%; justify-content: center; }
+}
+
+/* RESPONSIVE — MOBILE */
 @media (max-width: 600px) {
-  .wrapper { margin: 12px auto; }
+  .wrapper { margin: 10px auto; padding: 0 12px; }
   .card { padding: 16px; }
-  .row { grid-template-columns: 1fr; gap: 4px; }
+  .password-card { padding: 16px; margin-top: 16px; }
+  .close-x { top: 12px; right: 12px; width: 32px; height: 32px; font-size: 1rem; }
+  .grid { gap: 20px; }
+  .left-box { padding: 14px; }
+  .left-title { font-size: 1.1rem; margin-bottom: 8px; }
+  .preview { height: 220px; }
+  .left-actions { gap: 8px; }
+  .btn { padding: 8px 16px; font-size: 0.75rem; }
+  .nav-arrow { padding: 5px 10px; font-size: 1.2rem; }
+  .h-title { font-size: 1.3rem; }
+  .p-sub { font-size: 0.75rem; }
+  .row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+    padding: 8px 0;
+  }
+  .row .label { font-size: 0.7rem; }
+  .row .value { font-size: 0.85rem; }
+  .edit-btn { padding: 4px 8px; font-size: 0.7rem; align-self: flex-start; }
+  .input { padding: 6px 10px; font-size: 0.85rem; }
+  .status-row { font-size: 0.8rem; flex-wrap: wrap; }
+  .bottom-actions { gap: 8px; margin-top: 16px; }
+  .btn.save, .btn.cancel { padding: 10px 20px; font-size: 0.8rem; }
+  .password-card h2 { font-size: 1.3rem; }
+  .password-field input { padding: 8px 36px 8px 12px; font-size: 0.85rem; }
+  .password-field label { font-size: 0.8rem; }
+  .btn-save-password { width: 100%; justify-content: center; padding: 10px; font-size: 0.85rem; }
 }

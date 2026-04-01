@@ -72,6 +72,7 @@ if ($badgeCount > 99) $badgeCount = 99;
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Request Document</title>
   <link rel="stylesheet" href="../assets/css/user_request.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -81,10 +82,6 @@ if ($badgeCount > 99) $badgeCount = 99;
 
 <header class="topbar">
   <div class="brand">
-    <div class="logo">
-      <!-- Optional small logo Waiting for design -->
-      <!-- <img src="assets/img/edoc-logo.jpeg">  -->
-    </div>
     <div>E-Doc Document Requesting System</div>
   </div>
   <div class="top-icons">

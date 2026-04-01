@@ -98,6 +98,7 @@ button:focus-visible, a:focus-visible {
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  padding: 20px;
 }
 
 .modal {
@@ -479,13 +480,14 @@ button:focus-visible, a:focus-visible {
   box-shadow: 0 6px 15px rgba(0, 38, 153, 0.3);
 }
 
-/* RESPONSIVE */
+/* RESPONSIVE — TABLET */
 @media (max-width: 768px) {
-  .container { margin-top: 1rem; }
+  .container { margin-top: 1rem; padding: 0 16px; }
   .panel { padding: 30px 20px; }
   .exit-btn { position: static; display: inline-block; margin-bottom: 20px; }
   .info-grid { grid-template-columns: 1fr; }
   .btn-edit-info { position: static; margin-bottom: 16px; }
+  .step-indicator .divider { width: 24px; }
   .actions {
     flex-direction: column-reverse;
     gap: 12px;
@@ -495,9 +497,27 @@ button:focus-visible, a:focus-visible {
   .actions form { width: 100%; }
 }
 
+/* RESPONSIVE — MOBILE */
 @media (max-width: 600px) {
-  .topbar { padding: 0.75rem 1rem; }
-  .brand div:last-child { display: none; }
-  .banner h1 { font-size: 1.5rem; }
-  .banner { padding: 20px; }
+  .topbar { padding: 0.6rem 1rem; }
+  .brand { font-size: 0.85rem; gap: 6px; }
+  .brand div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+  .top-icons { gap: 8px; }
+  .icon-btn { width: 38px; height: 38px; border-radius: 8px; font-size: 16px; }
+  .container { margin-top: 0.75rem; padding: 0 12px; margin-bottom: 40px; }
+  .banner h1 { font-size: 1.4rem; }
+  .banner { padding: 16px 20px; }
+  .banner p { font-size: 0.85rem; }
+  .panel { padding: 24px 16px; }
+  .step-indicator { gap: 8px; margin: 16px 0 20px; }
+  .step-indicator .step { font-size: 0.75rem; gap: 5px; }
+  .step-indicator .step .num { width: 24px; height: 24px; font-size: 0.7rem; }
+  .step-indicator .divider { width: 16px; }
+  .info-section h2 { font-size: 1.2rem; }
+  .info-row .value-text { font-size: 0.85rem; }
+  .info-row input, .info-row select { font-size: 0.85rem; padding: 8px 12px; }
+  .edit-actions { flex-direction: column; }
+  .btn-save-info, .btn-cancel-edit { width: 100%; justify-content: center; }
+  .btn { padding: 12px 20px; font-size: 0.85rem; }
+  .modal { max-width: 95%; padding: 20px; margin: 0 10px; }
 }
