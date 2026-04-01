@@ -4,6 +4,13 @@ require_role(ROLE_USER);
 
 $user_id = (int)$_SESSION["user_id"];
 
+// Fetch user first name for welcome banner
+$nameStmt = $conn->prepare("SELECT first_name FROM users WHERE id = ?");
+$nameStmt->bind_param("i", $user_id);
+$nameStmt->execute();
+$firstName = $nameStmt->get_result()->fetch_assoc()["first_name"] ?? "User";
+$nameStmt->close();
+
 $q = trim($_GET["q"] ?? "");
 $statusFilter = trim($_GET["status"] ?? "ALL");
 
@@ -155,30 +162,28 @@ function page_url($pageNum, $q, $status){
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>User Dashboard</title>
   <link rel="stylesheet" href="../assets/css/user_dashboard.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <?php include __DIR__ . "/../includes/swal_header.php"; ?>
 </head>
 <body>
 
 <header class="topbar">
   <div class="brand">
-    <div class="logo">
-      <!-- Optional small logo Waiting for design -->
-      <!-- <img src="assets/img/edoc-logo.jpeg">  -->
-    </div>
     <div>E-Doc Document Requesting System</div>
   </div>
   <div class="top-icons">
     <span class="notif-wrap">
-      <button class="icon-btn" id="notifBtn" title="Notifications" type="button">🔔</button>
+      <button class="icon-btn" id="notifBtn" title="Notifications" type="button"><i class="bi bi-bell"></i></button>
       <?php if ($badgeCount > 0): ?>
         <span class="notif-badge" id="notifBadge"><?= (int)$badgeCount ?></span>
       <?php endif; ?>
     </span>
 
-    <div class="icon-btn" title="Account"><a href="profile.php">👤</a></div>
-    <button class="icon-btn" title="Logout" onclick="swalConfirm('Logout', 'Are you sure you want to log out?', 'Yes, log out', function(){ window.location='../auth/logout.php'; })">⎋</button>
+    <div class="icon-btn" title="Account"><a href="profile.php"><i class="bi bi-person-circle"></i></a></div>
+    <button class="icon-btn" title="Logout" onclick="swalConfirm('Logout', 'Are you sure you want to log out?', 'Yes, log out', function(){ window.location='../auth/logout.php'; })"><i class="bi bi-box-arrow-right"></i></button>
   </div>
 </header>
 
@@ -197,33 +202,40 @@ function page_url($pageNum, $q, $status){
     </section>
   <?php endif; ?>
 
-  <section class="panel welcome">
-    <h2>Welcome!</h2>
-    <p>Track your document requests and submit new applications easily.</p>
+  <section class="welcome-banner">
+    <div>
+      <h2>Welcome back, <?= h(strtoupper($firstName)) ?>!</h2>
+      <p class="date"><?= date('l, F j, Y.') ?></p>
+    </div>
+    <div class="role-badge">
+      <i class="bi bi-person-badge"></i>
+      <span class="label">Current Role</span>
+      <span class="value">Student</span>
+    </div>
   </section>
 
-  <section class="cards">
+  <section class="actions">
     <a class="card" href="request.php">
-      <div class="icon">📄</div>
-      <div class="title">Request Document</div>
-      <div class="desc">Transcript, Diploma, Certifications</div>
+      <i class="bi bi-file-earmark-plus"></i>
+      <h3>Request Document</h3>
+      <p>Transcript, Diploma, Certifications</p>
     </a>
     <a class="card" href="upload_requirements.php">
-      <div class="icon">⬆️</div>
-      <div class="title">Upload Requirements</div>
-      <div class="desc">Valid ID, forms, clearance</div>
+      <i class="bi bi-cloud-arrow-up"></i>
+      <h3>Upload Requirements</h3>
+      <p>Valid ID, forms, clearance</p>
     </a>
     <a class="card" href="application_process.php">
-      <div class="icon">📌</div>
-      <div class="title">Application Process</div>
-      <div class="desc">View requirement and process</div>
+      <i class="bi bi-list-check"></i>
+      <h3>Application Process</h3>
+      <p>View requirement and process</p>
     </a>
   </section>
 
   <!-- Search + Filter -->
   <form class="toolbar" method="GET" action="dashboard.php">
     <div class="searchbar">
-      🔎
+      <i class="bi bi-search"></i>
       <input
         type="text"
         name="q"
@@ -257,11 +269,12 @@ function page_url($pageNum, $q, $status){
           <th>Last Updated</th>
           <th>APPLICATION STATUS</th>
           <th>VIEW PROGRESS</th>
+          <th>ACTION</th>
         </tr>
       </thead>
       <tbody>
         <?php if (!$rows): ?>
-          <tr><td colspan="5">No requests found.</td></tr>
+          <tr><td colspan="6">No requests found.</td></tr>
         <?php else: ?>
           <?php foreach ($rows as $r): ?>
             <?php
@@ -271,18 +284,27 @@ function page_url($pageNum, $q, $status){
               $st = strtoupper($r["status"] ?? "PENDING");
             ?>
             <tr>
-              <td><?= htmlspecialchars(strtoupper($r["document_type"])) ?></td>
-              <td><?= htmlspecialchars($r["reference_no"]) ?></td>
-              <td><?= htmlspecialchars($date) ?></td>
-              <td>
+              <td data-label="Document"><?= htmlspecialchars(strtoupper($r["document_type"])) ?></td>
+              <td data-label="Reference"><?= htmlspecialchars($r["reference_no"]) ?></td>
+              <td data-label="Updated"><?= htmlspecialchars($date) ?></td>
+              <td data-label="Status">
                 <span class="status-pill <?= status_css($st) ?>">
                   <?= htmlspecialchars(ucwords(strtolower($st))) ?>
                 </span>
               </td>
-              <td>
+              <td data-label="Progress">
                 <a class="track-btn" href="track.php?ref=<?= urlencode($r["reference_no"]) ?>">
                   Track Progress &gt;
                 </a>
+              </td>
+              <td data-label="Action">
+                <?php if ($st === STATUS_PENDING): ?>
+                  <button class="btn-cancel" onclick="cancelRequest(<?= (int)$r['id'] ?>, '<?= h($r['reference_no']) ?>')">
+                    <i class="bi bi-x-circle"></i> Cancel
+                  </button>
+                <?php else: ?>
+                  —
+                <?php endif; ?>
               </td>
             </tr>
           <?php endforeach; ?>
@@ -320,6 +342,7 @@ function page_url($pageNum, $q, $status){
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="notifTitle">
     <button class="close-x" id="notifClose" type="button">×</button>
     <h3 id="notifTitle">NOTIFICATION</h3>
+    <div class="notif-list">
 
     <?php if (empty($notifs)): ?>
       <div class="notif-item">
@@ -336,6 +359,7 @@ function page_url($pageNum, $q, $status){
         </div>
       <?php endforeach; ?>
     <?php endif; ?>
+    </div>
 
   </div>
 </div>
@@ -357,11 +381,13 @@ function page_url($pageNum, $q, $status){
 
   function openNotif(){
     backdrop.style.display = "flex";
+    document.body.style.overflow = "hidden";
     markSeen(); // ✅ reset unread count when opened
   }
 
   function closeNotif(){
     backdrop.style.display = "none";
+    document.body.style.overflow = "";
   }
 
   notifBtn?.addEventListener("click", openNotif);
@@ -385,6 +411,39 @@ function page_url($pageNum, $q, $status){
       notifBackdrop.style.display = "none";
     }
   });
+
+  function cancelRequest(requestId, refNo) {
+    Swal.fire({
+      title: 'Cancel Request?',
+      text: `Are you sure you want to cancel request ${refNo}?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#EF4444',
+      confirmButtonText: 'Yes, cancel it',
+      cancelButtonText: 'No, keep it'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = 'request_cancel.php';
+
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = '_csrf_token';
+        csrfInput.value = '<?= csrf_token() ?>';
+        form.appendChild(csrfInput);
+
+        const idInput = document.createElement('input');
+        idInput.type = 'hidden';
+        idInput.name = 'request_id';
+        idInput.value = requestId;
+        form.appendChild(idInput);
+
+        document.body.appendChild(form);
+        form.submit();
+      }
+    });
+  }
 </script>
 
 </body>

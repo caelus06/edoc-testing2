@@ -266,8 +266,10 @@ if ($badgeCount > 99) $badgeCount = 99;
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Upload Requirements</title>
   <link rel="stylesheet" href="../assets/css/user_upload_requirements_upload.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <?php include __DIR__ . "/../includes/swal_header.php"; ?>
 </head>
 <body>
@@ -278,14 +280,14 @@ if ($badgeCount > 99) $badgeCount = 99;
   </div>
   <div class="top-icons">
     <span class="notif-wrap">
-      <button class="icon-btn" id="notifBtn" title="Notifications" type="button">🔔</button>
+      <button class="icon-btn" id="notifBtn" title="Notifications" type="button"><i class="bi bi-bell"></i></button>
       <?php if ($badgeCount > 0): ?>
         <span class="notif-badge" id="notifBadge"><?= (int)$badgeCount ?></span>
       <?php endif; ?>
     </span>
 
-    <div class="icon-btn" title="Account"><a href="profile.php">👤</a></div>
-    <button class="icon-btn" title="Logout" onclick="swalConfirm('Logout', 'Are you sure you want to log out?', 'Yes, log out', function(){ window.location='../auth/logout.php'; })">⎋</button>
+    <div class="icon-btn" title="Account"><a href="profile.php"><i class="bi bi-person-circle"></i></a></div>
+    <button class="icon-btn" title="Logout" onclick="swalConfirm('Logout', 'Are you sure you want to log out?', 'Yes, log out', function(){ window.location='../auth/logout.php'; })"><i class="bi bi-box-arrow-right"></i></button>
   </div>
 </header>
 
@@ -296,7 +298,7 @@ if ($badgeCount > 99) $badgeCount = 99;
   </section>
 
   <section class="panel">
-    <a class="exit-btn" href="dashboard.php">EXIT</a>
+    <a class="exit-btn" href="dashboard.php"><i class="bi bi-x-lg"></i> EXIT</a>
 
     <div class="h2">Important Instructions</div>
     <div class="note" style="margin-top: 15px;">
@@ -416,8 +418,8 @@ if ($badgeCount > 99) $badgeCount = 99;
     <?php endif; ?>
 
     <div class="actions">
-      <button class="btn pre" onclick="history.back()">PREVIOUS</button>
-      <a class="btn save" href="dashboard.php" style="text-decoration:none;">DONE</a>
+      <button class="btn pre" onclick="history.back()"><i class="bi bi-arrow-left"></i> PREVIOUS</button>
+      <a class="btn save" href="dashboard.php" style="text-decoration:none;"><i class="bi bi-check-lg"></i> DONE</a>
     </div>
   </section>
 </main>
@@ -427,6 +429,7 @@ if ($badgeCount > 99) $badgeCount = 99;
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="notifTitle">
     <button class="close-x" id="notifClose" type="button">&times;</button>
     <h3 id="notifTitle">NOTIFICATION</h3>
+    <div class="notif-list">
 
     <?php if (empty($notifs)): ?>
       <div class="notif-item">
@@ -443,6 +446,8 @@ if ($badgeCount > 99) $badgeCount = 99;
         </div>
       <?php endforeach; ?>
     <?php endif; ?>
+    </div>
+
   </div>
 </div>
 
@@ -462,11 +467,13 @@ if ($badgeCount > 99) $badgeCount = 99;
 
   function openNotif(){
     backdrop.style.display = "flex";
+    document.body.style.overflow = "hidden";
     markSeen();
   }
 
   function closeNotif(){
     backdrop.style.display = "none";
+    document.body.style.overflow = "";
   }
 
   notifBtn?.addEventListener("click", openNotif);

@@ -56,8 +56,10 @@ $initialStep = max(0, min(2, (int)($_GET["step"] ?? 0)));
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Profile</title>
   <link rel="stylesheet" href="../assets/css/profile.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <?php include __DIR__ . "/../includes/swal_header.php"; ?>
 </head>
 <body>
@@ -101,8 +103,8 @@ $initialStep = max(0, min(2, (int)($_GET["step"] ?? 0)));
 
         <div class="left-actions">
           <button class="nav-arrow" type="button" onclick="prevStep()">&lt;</button>
-          <button class="btn delete" type="button" onclick="doDelete()">DELETE</button>
-          <button class="btn upload" type="button" onclick="doUpload()">UPLOAD</button>
+          <button class="btn delete" type="button" onclick="doDelete()"><i class="bi bi-trash"></i> Delete</button>
+          <button class="btn upload" type="button" onclick="doUpload()"><i class="bi bi-upload"></i> Upload</button>
           <button class="nav-arrow" type="button" onclick="nextStep()">&gt;</button>
         </div>
       </div>
@@ -135,7 +137,7 @@ $initialStep = max(0, min(2, (int)($_GET["step"] ?? 0)));
                     </div>
 
                     <button class="edit-btn" type="button" onclick="enableEdit(\''.$key.'\')">
-                      <span>&#9998;</span> EDIT
+                      <i class="bi bi-pencil-square"></i> Edit
                     </button>
                   </div>
                 ';
@@ -169,6 +171,39 @@ $initialStep = max(0, min(2, (int)($_GET["step"] ?? 0)));
 
       </div>
     </div>
+  </div>
+</div>
+
+<div class="wrapper">
+  <div class="password-card">
+    <h2><i class="bi bi-key"></i> Change Password</h2>
+    <form id="changePasswordForm" method="POST" action="change_password.php">
+      <?= csrf_field() ?>
+      <div class="password-field">
+        <label for="current_password">Current Password</label>
+        <input type="password" id="current_password" name="current_password" required>
+        <button type="button" class="password-toggle" onclick="togglePassword('current_password', this)">
+          <i class="bi bi-eye"></i>
+        </button>
+      </div>
+      <div class="password-field">
+        <label for="new_password">New Password</label>
+        <input type="password" id="new_password" name="new_password" required minlength="8">
+        <button type="button" class="password-toggle" onclick="togglePassword('new_password', this)">
+          <i class="bi bi-eye"></i>
+        </button>
+        <div class="password-error" id="newPwError"></div>
+      </div>
+      <div class="password-field">
+        <label for="confirm_password">Confirm New Password</label>
+        <input type="password" id="confirm_password" name="confirm_password" required>
+        <button type="button" class="password-toggle" onclick="togglePassword('confirm_password', this)">
+          <i class="bi bi-eye"></i>
+        </button>
+        <div class="password-error" id="confirmPwError"></div>
+      </div>
+      <button type="submit" class="btn-save-password"><i class="bi bi-check-lg"></i> Save Password</button>
+    </form>
   </div>
 </div>
 
@@ -253,6 +288,39 @@ function enableEdit(field) {
 }
 
 renderStep();
+
+// Change password
+function togglePassword(fieldId, btn) {
+  var input = document.getElementById(fieldId);
+  var icon = btn.querySelector('i');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.className = 'bi bi-eye-slash';
+  } else {
+    input.type = 'password';
+    icon.className = 'bi bi-eye';
+  }
+}
+
+document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
+  var newPw = document.getElementById('new_password').value;
+  var confirmPw = document.getElementById('confirm_password').value;
+  var newErr = document.getElementById('newPwError');
+  var confirmErr = document.getElementById('confirmPwError');
+  newErr.textContent = '';
+  confirmErr.textContent = '';
+
+  if (newPw.length < 8) {
+    e.preventDefault();
+    newErr.textContent = 'Password must be at least 8 characters.';
+    return;
+  }
+  if (newPw !== confirmPw) {
+    e.preventDefault();
+    confirmErr.textContent = 'Passwords do not match.';
+    return;
+  }
+});
 
 </script>
 </body>

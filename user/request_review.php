@@ -85,30 +85,28 @@ if ($badgeCount > 99) $badgeCount = 99;
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Request Document - Review</title>
   <link rel="stylesheet" href="../assets/css/user_request_review.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <?php include __DIR__ . "/../includes/swal_header.php"; ?>
 </head>
 <body>
 
 <header class="topbar">
   <div class="brand">
-    <div class="logo">
-      <!-- Optional small logo Waiting for design -->
-      <!-- <img src="assets/img/edoc-logo.jpeg" alt="E-Doc Logo"> -->
-    </div>
     <div>E-Doc Document Requesting System</div>
   </div>
   <div class="top-icons">
     <span class="notif-wrap">
-      <button class="icon-btn" id="notifBtn" title="Notifications" type="button">🔔</button>
+      <button class="icon-btn" id="notifBtn" title="Notifications" type="button"><i class="bi bi-bell"></i></button>
       <?php if ($badgeCount > 0): ?>
         <span class="notif-badge" id="notifBadge"><?= (int)$badgeCount ?></span>
       <?php endif; ?>
     </span>
 
-    <div class="icon-btn" title="Account"><a href="profile.php">👤</a></div>
-    <button class="icon-btn" title="Logout" style="background:none; border:none; cursor:pointer;" onclick="swalConfirm('Logout', 'Are you sure you want to log out?', 'Yes, log out', function(){ window.location='../auth/logout.php'; })">⎋</button>
+    <div class="icon-btn" title="Account"><a href="profile.php"><i class="bi bi-person-circle"></i></a></div>
+    <button class="icon-btn" title="Logout" onclick="swalConfirm('Logout', 'Are you sure you want to log out?', 'Yes, log out', function(){ window.location='../auth/logout.php'; })"><i class="bi bi-box-arrow-right"></i></button>
   </div>
 </header>
 
@@ -118,43 +116,103 @@ if ($badgeCount > 99) $badgeCount = 99;
     <p>Start your application by completing all required fields and reviewing your personal information for accuracy.</p>
   </section>
 
+  <div class="step-indicator">
+    <div class="step">
+      <span class="num">1</span>
+      <span>Select Document</span>
+    </div>
+    <div class="divider"></div>
+    <div class="step active">
+      <span class="num">2</span>
+      <span>Review & Submit</span>
+    </div>
+  </div>
+
   <section class="panel">
-        <!-- Changed link to pass a 'clear' parameter to trigger the session unset logic above -->
-      <a class="exit-btn" href="request.php?clear=1">EXIT</a>
+    <a class="exit-btn" href="request.php?clear=1"><i class="bi bi-x-lg"></i> EXIT</a>
 
-    <h2>Review Your Personal Information</h2>
-    <p class="sub">Ensure that the details you provide are accurate and consistent with your official academic records.</p>
+    <div class="info-section">
+      <button type="button" class="btn-edit-info" id="editInfoBtn">
+        <i class="bi bi-pencil-square"></i> Edit
+      </button>
+      <h2>Review Your Personal Information</h2>
+      <p class="sub">Ensure that the details you provide are accurate and consistent with your official academic records.</p>
 
-    <div class="info">
-      <p><b>First Name:</b> <?= htmlspecialchars($u["first_name"] ?: "N/A") ?></p>
-      <p><b>Middle Name:</b> <?= htmlspecialchars($u["middle_name"] ?: "N/A") ?></p>
-      <p><b>Last Name:</b> <?= htmlspecialchars($u["last_name"] ?: "N/A") ?></p>
-      <p><b>Suffix:</b> <?= htmlspecialchars($u["suffix"] ?: "N/A") ?></p>
-      <p><b>ID Number:</b> <?= htmlspecialchars($u["student_id"] ?: "N/A") ?></p>
-      <p><b>Course/Program:</b> <?= htmlspecialchars($u["course"] ?: "N/A") ?></p>
-      <p><b>Major:</b> <?= htmlspecialchars($u["major"] ?: "N/A") ?></p>
-      <p><b>Year Graduated:</b> <?= htmlspecialchars($u["year_graduated"] ?: "N/A") ?></p>
-      <p><b>Gender:</b> <?= htmlspecialchars($u["gender"] ?: "N/A") ?></p>
-      <p><b>Email:</b> <?= htmlspecialchars($u["email"] ?: "N/A") ?></p>
-      <p><b>Contact Number:</b> <?= htmlspecialchars($u["contact_number"] ?: "N/A") ?></p>
-      <p><b>Complete Address:</b> <?= htmlspecialchars($u["address"] ?: "N/A") ?></p>
+      <div class="edit-warning" id="editWarning">
+        <i class="bi bi-exclamation-triangle"></i>
+        Updating information here will also change your main profile information. This ensures you don't have to re-enter details every time you make a request.
+      </div>
+
+      <div class="info-grid">
+        <?php
+        $infoFields = [
+            "first_name"     => ["First Name",     $u["first_name"]],
+            "middle_name"    => ["Middle Name",     $u["middle_name"]],
+            "last_name"      => ["Last Name",       $u["last_name"]],
+            "suffix"         => ["Suffix",          $u["suffix"]],
+            "student_id"     => ["ID Number",       $u["student_id"]],
+            "course"         => ["Course/Program",  $u["course"]],
+            "major"          => ["Major",           $u["major"]],
+            "year_graduated" => ["Year Graduated",  $u["year_graduated"]],
+            "gender"         => ["Gender",          $u["gender"]],
+            "contact_number" => ["Contact Number",  $u["contact_number"]],
+            "address"        => ["Complete Address", $u["address"]],
+        ];
+        foreach ($infoFields as $field => $meta): ?>
+          <div class="info-row" data-field="<?= $field ?>">
+            <span class="label"><?= $meta[0] ?></span>
+            <span class="value-text"><?= h($meta[1] ?? '') ?: '—' ?></span>
+            <?php if ($field === "gender"): ?>
+              <select name="<?= $field ?>">
+                <option value="">—</option>
+                <option value="Male" <?= ($meta[1] ?? '') === 'Male' ? 'selected' : '' ?>>Male</option>
+                <option value="Female" <?= ($meta[1] ?? '') === 'Female' ? 'selected' : '' ?>>Female</option>
+              </select>
+            <?php else: ?>
+              <input type="text" name="<?= $field ?>" value="<?= h($meta[1] ?? '') ?>">
+            <?php endif; ?>
+          </div>
+        <?php endforeach; ?>
+
+        <div class="info-row">
+          <span class="label">Email</span>
+          <span class="value-text"><?= h($u["email"] ?? '') ?: '—' ?></span>
+        </div>
+      </div>
+
+      <div class="edit-actions" id="editActions">
+        <button type="button" class="btn-save-info" id="saveInfoBtn"><i class="bi bi-check-lg"></i> Save Changes</button>
+        <button type="button" class="btn-cancel-edit" id="cancelEditBtn">Cancel</button>
+      </div>
     </div>
 
-    <hr style="border:none;border-top:1px solid #eef1f6;margin:18px 0;">
+    <hr class="section-divider">
 
-    <div class="info">
-      <p><b>Document Type:</b> <?= htmlspecialchars($req["document_type"]) ?></p>
-      <p><b>Title Type:</b> <?= htmlspecialchars($req["title_type"]) ?></p>
-      <p><b>Purpose:</b> <?= htmlspecialchars($req["purpose"]) ?></p>
-      <p><b>Copies:</b> <?= (int)$req["copies"] ?></p>
+    <div class="info-grid request-details">
+      <div class="info-row">
+        <span class="label">Document Type</span>
+        <span class="value-text"><?= h($req["document_type"]) ?></span>
+      </div>
+      <div class="info-row">
+        <span class="label">Title Type</span>
+        <span class="value-text"><?= h($req["title_type"]) ?></span>
+      </div>
+      <div class="info-row">
+        <span class="label">Purpose</span>
+        <span class="value-text"><?= h($req["purpose"]) ?></span>
+      </div>
+      <div class="info-row">
+        <span class="label">Copies</span>
+        <span class="value-text"><?= (int)$req["copies"] ?></span>
+      </div>
     </div>
 
     <div class="actions">
-      <a class="btn prev" href="request.php" style="text-decoration:none;display:inline-block;">&lt;&lt;&lt; PREVIOUS</a>
+      <a class="btn prev" href="request.php"><i class="bi bi-arrow-left"></i> Previous</a>
 
       <form method="POST" action="request_submit.php" style="margin:0;">
         <?= csrf_field() ?>
-        <button class="btn save" type="submit">SAVE</button>
+        <button class="btn save" type="submit"><i class="bi bi-send"></i> Submit Request</button>
       </form>
     </div>
   </section>
@@ -165,6 +223,7 @@ if ($badgeCount > 99) $badgeCount = 99;
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="notifTitle">
     <button class="close-x" id="notifClose" type="button">×</button>
     <h3 id="notifTitle">NOTIFICATION</h3>
+    <div class="notif-list">
 
     <?php if (empty($notifs)): ?>
       <div class="notif-item">
@@ -181,6 +240,7 @@ if ($badgeCount > 99) $badgeCount = 99;
         </div>
       <?php endforeach; ?>
     <?php endif; ?>
+    </div>
 
   </div>
 </div>
@@ -201,11 +261,13 @@ if ($badgeCount > 99) $badgeCount = 99;
 
   function openNotif(){
     backdrop.style.display = "flex";
+    document.body.style.overflow = "hidden";
     markSeen(); // ✅ reset unread count when opened
   }
 
   function closeNotif(){
     backdrop.style.display = "none";
+    document.body.style.overflow = "";
   }
 
   notifBtn?.addEventListener("click", openNotif);
@@ -219,6 +281,76 @@ if ($badgeCount > 99) $badgeCount = 99;
     if (e.key === "Escape") closeNotif();
   });
 
+</script>
+
+<script>
+  const editBtn = document.getElementById("editInfoBtn");
+  const saveBtn = document.getElementById("saveInfoBtn");
+  const cancelBtn = document.getElementById("cancelEditBtn");
+  const warning = document.getElementById("editWarning");
+  const actions = document.getElementById("editActions");
+  const infoSection = document.querySelector(".info-section");
+  const rows = document.querySelectorAll(".info-row[data-field]");
+
+  let originals = {};
+
+  editBtn?.addEventListener("click", () => {
+    originals = {};
+    rows.forEach(row => {
+      const field = row.dataset.field;
+      const input = row.querySelector("input, select");
+      if (input) originals[field] = input.value;
+      row.classList.add("editing");
+    });
+    warning.style.display = "flex";
+    actions.style.display = "flex";
+    editBtn.style.display = "none";
+  });
+
+  cancelBtn?.addEventListener("click", () => {
+    rows.forEach(row => {
+      const field = row.dataset.field;
+      const input = row.querySelector("input, select");
+      if (input && originals[field] !== undefined) input.value = originals[field];
+      row.classList.remove("editing");
+    });
+    warning.style.display = "none";
+    actions.style.display = "none";
+    editBtn.style.display = "";
+  });
+
+  saveBtn?.addEventListener("click", async () => {
+    const body = new URLSearchParams();
+    body.append("_csrf_token", "<?= urlencode(csrf_token()) ?>");
+    body.append("ajax", "1");
+    body.append("exclude_email", "1");
+    rows.forEach(row => {
+      const field = row.dataset.field;
+      const input = row.querySelector("input, select");
+      if (input) body.append(field, input.value);
+    });
+
+    try {
+      const res = await fetch("profile_update.php", { method: "POST", body });
+      const data = await res.json();
+      if (data.success) {
+        rows.forEach(row => {
+          const input = row.querySelector("input, select");
+          const text = row.querySelector(".value-text");
+          if (input && text) text.textContent = input.value || "—";
+          row.classList.remove("editing");
+        });
+        warning.style.display = "none";
+        actions.style.display = "none";
+        editBtn.style.display = "";
+        Swal.fire({ icon: "success", title: "Saved", text: data.message, timer: 1500, showConfirmButton: false });
+      } else {
+        Swal.fire({ icon: "error", title: "Error", text: data.message || "Update failed." });
+      }
+    } catch (e) {
+      Swal.fire({ icon: "error", title: "Error", text: "Network error. Please try again." });
+    }
+  });
 </script>
 
 </body>

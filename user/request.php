@@ -72,30 +72,28 @@ if ($badgeCount > 99) $badgeCount = 99;
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Request Document</title>
   <link rel="stylesheet" href="../assets/css/user_request.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <?php include __DIR__ . "/../includes/swal_header.php"; ?>
 </head>
 <body>
 
 <header class="topbar">
   <div class="brand">
-    <div class="logo">
-      <!-- Optional small logo Waiting for design -->
-      <!-- <img src="assets/img/edoc-logo.jpeg">  -->
-    </div>
     <div>E-Doc Document Requesting System</div>
   </div>
   <div class="top-icons">
     <span class="notif-wrap">
-      <button class="icon-btn" id="notifBtn" title="Notifications" type="button">🔔</button>
+      <button class="icon-btn" id="notifBtn" title="Notifications" type="button"><i class="bi bi-bell"></i></button>
       <?php if ($badgeCount > 0): ?>
         <span class="notif-badge" id="notifBadge"><?= (int)$badgeCount ?></span>
       <?php endif; ?>
     </span>
 
-    <div class="icon-btn" title="Account"><a href="profile.php">👤</a></div>
-    <button class="icon-btn" title="Logout" style="background:none; border:none; cursor:pointer;" onclick="swalConfirm('Logout', 'Are you sure you want to log out?', 'Yes, log out', function(){ window.location='../auth/logout.php'; })">⎋</button>
+    <div class="icon-btn" title="Account"><a href="profile.php"><i class="bi bi-person-circle"></i></a></div>
+    <button class="icon-btn" title="Logout" onclick="swalConfirm('Logout', 'Are you sure you want to log out?', 'Yes, log out', function(){ window.location='../auth/logout.php'; })"><i class="bi bi-box-arrow-right"></i></button>
   </div>
 </header>
 
@@ -106,9 +104,21 @@ if ($badgeCount > 99) $badgeCount = 99;
     <p>Start your application by completing all required fields and reviewing your personal information for accuracy.</p>
   </section>
 
+  <div class="step-indicator">
+    <div class="step active">
+      <span class="num">1</span>
+      <span>Select Document</span>
+    </div>
+    <div class="divider"></div>
+    <div class="step">
+      <span class="num">2</span>
+      <span>Review & Submit</span>
+    </div>
+  </div>
+
   <section class="panel">
     <!-- Changed link to pass a 'clear' parameter to trigger the session unset logic above -->
-      <a class="exit-btn" href="request.php?clear=1">EXIT</a>
+      <a class="exit-btn" href="request.php?clear=1"><i class="bi bi-x-lg"></i> EXIT</a>
 
     <div class="h2">Application Details</div>
     <p class="sub">Kindly complete all required fields to ensure accurate processing of your request</p>
@@ -141,11 +151,11 @@ if ($badgeCount > 99) $badgeCount = 99;
             value="<?= htmlspecialchars($saved_req['purpose'] ?? '') ?>">
 
       <label class="label">Number of Copies: *</label>
-      <input type="number" name="copies" min="1" value="1" max="5" required 
+      <input type="number" name="copies" min="1" max="5" required
             value="<?= htmlspecialchars($saved_req['copies'] ?? '1') ?>">
 
       <div class="actions">
-        <button class="btn next" type="submit">NEXT &gt;&gt;&gt;</button>
+        <button class="btn next" type="submit">NEXT <i class="bi bi-arrow-right"></i></button>
       </div>
     </form>
   </section>
@@ -157,6 +167,7 @@ if ($badgeCount > 99) $badgeCount = 99;
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="notifTitle">
     <button class="close-x" id="notifClose" type="button">×</button>
     <h3 id="notifTitle">NOTIFICATION</h3>
+    <div class="notif-list">
 
     <?php if (empty($notifs)): ?>
       <div class="notif-item">
@@ -173,6 +184,7 @@ if ($badgeCount > 99) $badgeCount = 99;
         </div>
       <?php endforeach; ?>
     <?php endif; ?>
+    </div>
 
   </div>
 </div>
@@ -193,11 +205,13 @@ if ($badgeCount > 99) $badgeCount = 99;
 
   function openNotif(){
     backdrop.style.display = "flex";
+    document.body.style.overflow = "hidden";
     markSeen(); // ✅ reset unread count when opened
   }
 
   function closeNotif(){
     backdrop.style.display = "none";
+    document.body.style.overflow = "";
   }
 
   notifBtn?.addEventListener("click", openNotif);

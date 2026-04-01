@@ -1,6 +1,5 @@
-/* --- Academic Professional Palette --- 
-   Consistent with User Request and Review Design
----------------------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@300;400;500;600;700&display=swap');
+
 :root {
   --primary: #002699;
   --primary-hover: #001f80;
@@ -10,10 +9,11 @@
   --text-main: #1E293B;
   --text-muted: #64748B;
   --border: #E2E8F0;
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
- 
-  /* Status Colors */
+  --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+  --radius: 12px;
+  --font-heading: 'Bebas Neue', Arial, Impact, sans-serif;
+  --font-body: 'Poppins', Arial, sans-serif;
   --status-pending: #F59E0B;
   --status-approved: #10B981;
   --status-processing: #3B82F6;
@@ -21,15 +21,24 @@
   --status-completed: #6366F1;
 }
 
-* { box-sizing: border-box; transition: all 0.2s ease; }
+*, *::before, *::after { box-sizing: border-box; }
 
 body {
   margin: 0;
-  font-family: 'Inter', -apple-system, sans-serif;
+  font-family: var(--font-body);
   background: var(--bg-color);
   color: var(--text-main);
   line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  letter-spacing: 0.5px;
+}
+
+button:focus-visible, a:focus-visible {
+  outline: 2px solid var(--secondary);
+  outline-offset: 2px;
 }
 
 /* TOPBAR */
@@ -53,8 +62,6 @@ body {
   font-weight: 800;
   color: var(--primary);
 }
-
-.brand .logo { font-size: 24px; }
 
 .top-icons { display: flex; gap: 12px; align-items: center; }
 
@@ -87,7 +94,7 @@ body {
   width: 100%;
   max-width: 420px;
   max-height: 85vh;
-  overflow-y: auto;
+  overflow: hidden;
   background: var(--surface);
   border-radius: 16px;
   border: 1px solid var(--border);
@@ -104,7 +111,8 @@ body {
   to { transform: translateY(0); opacity: 1; }
 }
 
-.modal h3 { margin: 0 0 20px; font-size: 1.25rem; font-weight: 800; color: var(--primary); }
+.modal h3 { margin: 0 0 20px; font-size: 1.25rem; font-weight: 800; color: var(--primary); flex-shrink: 0; }
+.notif-list { overflow-y: auto; flex: 1; min-height: 0; }
 
 .close-x {
   position: absolute;
@@ -276,15 +284,15 @@ select:focus {
 
 .btn.next:active { transform: translateY(0); }
 
-/* RESPONSIVE DESIGN */
+/* RESPONSIVE — TABLET */
 @media (max-width: 768px) {
-  .container { margin-top: 1rem; padding: 0 15px; }
+  .container { margin-top: 1rem; padding: 0 16px; }
   .panel { padding: 30px 20px; }
-  .exit-btn { 
-    position: static; 
-    display: block; 
+  .exit-btn {
+    position: static;
+    display: block;
     text-align: center;
-    margin-bottom: 25px; 
+    margin-bottom: 25px;
     width: 100%;
   }
   .actions { justify-content: stretch; padding-top: 20px; }
@@ -293,8 +301,19 @@ select:focus {
   .banner h1 { font-size: 1.5rem; }
 }
 
+/* RESPONSIVE — MOBILE */
 @media (max-width: 600px) {
-  .topbar { padding: 0.75rem 1rem; }
-  .brand div:last-child { display: none; }
-  .modal { width: 95%; padding: 20px; }
+  .topbar { padding: 0.6rem 1rem; }
+  .brand { font-size: 0.85rem; gap: 6px; }
+  .brand div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+  .top-icons { gap: 8px; }
+  .icon-btn { width: 38px; height: 38px; border-radius: 8px; font-size: 16px; }
+  .container { padding: 0 12px; margin-bottom: 40px; }
+  .banner { padding: 20px; }
+  .banner h1 { font-size: 1.4rem; }
+  .panel { padding: 24px 16px; }
+  select { padding: 12px 14px; font-size: 0.9rem; }
+  .label { margin: 18px 0 8px; font-size: 0.8rem; }
+  .btn { padding: 14px 20px; font-size: 0.9rem; }
+  .modal { width: 95%; padding: 20px; margin: 0 auto; }
 }

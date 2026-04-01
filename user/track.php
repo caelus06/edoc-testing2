@@ -71,18 +71,21 @@ $uploadedRows = $fileStmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $uploadedMap = [];
 foreach ($uploadedRows as $u) {
   $key = strtoupper(trim($u["requirement_name"]));
-  $uploadedMap[$key] = $u; // latest/only row (you delete old before insert)
+  $uploadedMap[$key] = $u;
 }
 
-// status pill class (matches dashboard.css)
+// status pill class
 function status_class($statusRaw){
   $s = strtoupper(trim($statusRaw ?? ""));
-  if ($s === "COMPLETED") return "status-completed";
-  if ($s === "READY" || $s === "READY FOR PICKUP") return "status-completed";
-  if ($s === "APPROVED" || $s === "VERIFIED") return "status-approved";
-  if ($s === "PROCESSING") return "status-processing";
-  if ($s === "RETURNED") return "status-returned";
-  return "status-pending";
+  return match ($s) {
+    "PENDING"          => "status-pending",
+    "RETURNED"         => "status-returned",
+    "VERIFIED","APPROVED" => "status-approved",
+    "PROCESSING"       => "status-processing",
+    "READY FOR PICKUP","RELEASED","COMPLETED" => "status-completed",
+    "CANCELLED"        => "status-returned",
+    default            => "status-pending",
+  };
 }
 
 $requestedOn = date("F j, Y", strtotime($request["created_at"]));
@@ -97,171 +100,279 @@ foreach ($required as $r) {
   if (isset($uploadedMap[$k])) $uploadedCount++;
 }
 
-// Simple inline CSS for requirements rows + feed
-$uiCSS = "
-.track-box{ margin-top:14px; }
-.big-status{ display:inline-block; padding:8px 14px; border-radius:12px; font-size:12px; }
-.hr{ height:1px; background:#eee; margin:16px 0; }
-.kv p{ margin:6px 0; font-size:13px; }
+// Notifications
+$notifStmt = $conn->prepare("
+  SELECT rl.message, rl.created_at
+  FROM request_logs rl
+  INNER JOIN requests r ON r.id = rl.request_id
+  WHERE r.user_id = ?
+  ORDER BY rl.created_at DESC
+  LIMIT 30
+");
+$notifStmt->bind_param("i", $user_id);
+$notifStmt->execute();
+$notifs = $notifStmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-.req-wrap{ background:#fff; border:1px solid #dfe3ea; border-radius:14px; padding:14px; }
-.req-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 0; border-top:1px solid #eee; }
-.req-row:first-child{ border-top:none; }
-.req-left{ display:flex; align-items:center; gap:10px; }
-.req-badge{
-  display:inline-block;
-  padding:6px 10px;
-  border-radius:10px;
-  font-size:10px;
-  font-weight:900;
-  color:#fff;
-  background:#333;
-  min-width:90px;
-  text-align:center;
-}
-.req-badge.ok{ background:#2f8a3a; }
-.req-badge.miss{ background:#b36a2b; }
-.req-name{ font-weight:900; font-size:12px; }
-.req-actions{ display:flex; align-items:center; gap:10px; }
-.req-view{
-  font-size:11px;
-  font-weight:900;
-  color:#111;
-  text-decoration:none;
-}
-.req-view:hover{ text-decoration:underline; }
+$seenStmt = $conn->prepare("SELECT last_seen_at FROM user_notif_seen WHERE user_id = ? LIMIT 1");
+$seenStmt->bind_param("i", $user_id);
+$seenStmt->execute();
+$seenRow = $seenStmt->get_result()->fetch_assoc();
+$lastSeenAt = $seenRow["last_seen_at"] ?? "2000-01-01 00:00:00";
 
-.feed{ background:#fff; border:1px solid #dfe3ea; border-radius:14px; padding:14px; }
-.feed-item{ padding:10px 0; border-top:1px solid #eee; }
-.feed-item:first-child{ border-top:none; }
-.feed-msg{ font-weight:900; font-size:12px; margin:0; }
-.feed-time{ font-size:11px; color:#555; margin:4px 0 0; }
-.smallnote{ font-size:11px; color:#444; margin-top:6px; }
-";
+$badgeStmt = $conn->prepare("
+  SELECT COUNT(*) AS c
+  FROM request_logs rl
+  INNER JOIN requests r ON r.id = rl.request_id
+  WHERE r.user_id = ?
+    AND rl.created_at > ?
+");
+$badgeStmt->bind_param("is", $user_id, $lastSeenAt);
+$badgeStmt->execute();
+$badgeCount = (int)($badgeStmt->get_result()->fetch_assoc()["c"] ?? 0);
+if ($badgeCount > 99) $badgeCount = 99;
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Track Progress</title>
-  <link rel="stylesheet" href="../assets/css/dashboard.css">
+  <link rel="stylesheet" href="../assets/css/track.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <?php include __DIR__ . "/../includes/swal_header.php"; ?>
-  <style><?= $uiCSS ?></style>
 </head>
 <body>
 
 <header class="topbar">
   <div class="brand">
-      <!-- Optional small logo Waiting for design -->
-      <!-- <img src="assets/img/edoc-logo.jpeg">  -->
     <div>E-Doc Document Requesting System</div>
   </div>
   <div class="top-icons">
-    <div class="icon-btn" title="Home"><a href="dashboard.php">🏠</a></div>
-    <div class="icon-btn" title="Logout"><a href="../auth/logout.php">⎋</a></div>
+    <span class="notif-wrap">
+      <button class="icon-btn" id="notifBtn" title="Notifications" type="button"><i class="bi bi-bell"></i></button>
+      <?php if ($badgeCount > 0): ?>
+        <span class="notif-badge" id="notifBadge"><?= (int)$badgeCount ?></span>
+      <?php endif; ?>
+    </span>
+    <div class="icon-btn" title="Profile"><a href="profile.php"><i class="bi bi-person-circle"></i></a></div>
+    <div class="icon-btn" title="Dashboard"><a href="dashboard.php"><i class="bi bi-house"></i></a></div>
+    <button class="icon-btn" title="Logout" onclick="swalConfirm('Logout', 'Are you sure you want to log out?', 'Yes, log out', function(){ window.location='../auth/logout.php'; })"><i class="bi bi-box-arrow-right"></i></button>
   </div>
 </header>
 
 <main class="container">
 
-  <section class="panel">
-    <h2>Track Progress</h2>
-    <p>Stay updated with your request status and monitor the history of your application.</p>
+  <!-- Request Info -->
+  <div class="card">
+    <h2><i class="bi bi-clipboard-check"></i> Track Progress</h2>
+    <p class="card-subtitle">Stay updated with your request status and monitor the history of your application.</p>
 
-    <div class="track-box kv">
-      <p><b>Reference Number:</b> <?= htmlspecialchars($request["reference_no"]) ?></p>
-      <p><b>Document:</b> <?= htmlspecialchars(strtoupper($request["document_type"])) ?></p>
-      <p><b>Title Type:</b> <?= htmlspecialchars($request["title_type"]) ?></p>
-      <p><b>Requested on:</b> <?= htmlspecialchars($requestedOn) ?></p>
-      <p><b>Last Updated:</b> <?= htmlspecialchars($lastUpdated) ?></p>
-
-      <p>
-        <b>Application Status:</b>
-        <span class="status-pill big-status <?= status_class($status) ?>">
-          <?= htmlspecialchars($status) ?>
-        </span>
-      </p>
+    <div class="info-grid">
+      <div class="info-item">
+        <label>Reference Number</label>
+        <span><?= h($request["reference_no"]) ?></span>
+      </div>
+      <div class="info-item">
+        <label>Document Type</label>
+        <span><?= h(strtoupper($request["document_type"])) ?></span>
+      </div>
+      <div class="info-item">
+        <label>Title Type</label>
+        <span><?= h($request["title_type"]) ?></span>
+      </div>
+      <div class="info-item">
+        <label>Purpose</label>
+        <span><?= h($request["purpose"] ?? "—") ?></span>
+      </div>
+      <div class="info-item">
+        <label>Copies</label>
+        <span><?= (int)$request["copies"] ?></span>
+      </div>
+      <div class="info-item">
+        <label>Requested On</label>
+        <span><?= h($requestedOn) ?></span>
+      </div>
+      <div class="info-item">
+        <label>Last Updated</label>
+        <span><?= h($lastUpdated) ?></span>
+      </div>
+      <div class="info-item">
+        <label>Application Status</label>
+        <span class="status-pill <?= status_class($status) ?>"><?= h(ucwords(strtolower($status))) ?></span>
+      </div>
     </div>
 
-    <div class="hr"></div>
+    <?php if ($status === STATUS_PENDING): ?>
+      <button class="btn-cancel" onclick="cancelRequest(<?= (int)$request['id'] ?>, '<?= h($request['reference_no']) ?>')">
+        <i class="bi bi-x-circle"></i> Cancel Request
+      </button>
+    <?php endif; ?>
+  </div>
 
-    <h3>Requirements</h3>
-    <div class="smallnote">
+  <!-- Requirements -->
+  <div class="card">
+    <h2><i class="bi bi-folder-check"></i> Requirements</h2>
+    <div class="req-counter">
       Uploaded: <b><?= $uploadedCount ?></b> / <b><?= $totalReq ?></b>
     </div>
 
-    <div class="req-wrap" style="margin-top:10px;">
-      <?php if ($totalReq === 0): ?>
+    <?php if ($totalReq === 0): ?>
+      <div class="req-row">
+        <div class="req-left">
+          <span class="req-badge miss">NO LIST</span>
+          <span class="req-name">No requirements configured for this document/title type.</span>
+        </div>
+      </div>
+    <?php else: ?>
+      <?php foreach ($required as $r): ?>
+        <?php
+          $reqName = $r["req_name"];
+          $key = strtoupper(trim($reqName));
+          $isUploaded = isset($uploadedMap[$key]);
+          $badgeClass = $isUploaded ? "ok" : "miss";
+          $badgeText  = $isUploaded ? "UPLOADED" : "MISSING";
+          $viewHref = "#";
+          $uploadedAtText = "";
+          if ($isUploaded) {
+            $path = $uploadedMap[$key]["file_path"];
+            $viewHref = "../" . ltrim($path, "/");
+            $uploadedAtText = date("m/d/y, g:i A", strtotime($uploadedMap[$key]["uploaded_at"]));
+          }
+          $uploadLink = "upload_requirements_upload.php?ref=" . urlencode($request["reference_no"]);
+        ?>
         <div class="req-row">
           <div class="req-left">
-            <span class="req-badge miss">NO LIST</span>
-            <span class="req-name">No requirements configured for this document/title type.</span>
+            <span class="req-badge <?= $badgeClass ?>"><?= $badgeText ?></span>
+            <span class="req-name"><?= h(strtoupper($reqName)) ?></span>
+          </div>
+          <div class="req-actions">
+            <?php if ($isUploaded): ?>
+              <a class="req-view" href="<?= h($viewHref) ?>" target="_blank"><i class="bi bi-eye"></i> View</a>
+              <span class="req-time"><?= h($uploadedAtText) ?></span>
+            <?php else: ?>
+              <a class="req-view" href="<?= h($uploadLink) ?>"><i class="bi bi-upload"></i> Upload</a>
+            <?php endif; ?>
           </div>
         </div>
-      <?php else: ?>
-        <?php foreach ($required as $r): ?>
-          <?php
-            $reqName = $r["req_name"];
-            $key = strtoupper(trim($reqName));
+      <?php endforeach; ?>
+    <?php endif; ?>
+  </div>
 
-            $isUploaded = isset($uploadedMap[$key]);
-            $badgeClass = $isUploaded ? "ok" : "miss";
-            $badgeText  = $isUploaded ? "UPLOADED" : "MISSING";
+  <!-- Tracking History -->
+  <div class="card">
+    <h2><i class="bi bi-clock-history"></i> Tracking History</h2>
 
-            $viewHref = "#";
-            $uploadedAtText = "—";
-
-            if ($isUploaded) {
-              $path = $uploadedMap[$key]["file_path"]; // like uploads/requirements/file.pdf
-              // link from /user/ -> ../uploads/...
-              $viewHref = "../" . ltrim($path, "/");
-              $uploadedAtText = date("m/d/y, g:i A", strtotime($uploadedMap[$key]["uploaded_at"]));
-            }
-
-            // Optional: link to upload page if missing
-            $uploadLink = "upload_requirements_upload.php?ref=" . urlencode($request["reference_no"]);
-
-          ?>
-          <div class="req-row">
-            <div class="req-left">
-              <span class="req-badge <?= $badgeClass ?>"><?= $badgeText ?></span>
-              <span class="req-name"><?= htmlspecialchars(strtoupper($reqName)) ?></span>
-            </div>
-
-            <div class="req-actions">
-              <?php if ($isUploaded): ?>
-                <a class="req-view" href="<?= htmlspecialchars($viewHref) ?>" target="_blank">view &gt;&gt;&gt;</a>
-                <span class="smallnote"><?= htmlspecialchars($uploadedAtText) ?></span>
-              <?php else: ?>
-                <a class="req-view" href="<?= htmlspecialchars($uploadLink) ?>">upload &gt;&gt;&gt;</a>
-              <?php endif; ?>
-            </div>
-          </div>
-        <?php endforeach; ?>
-      <?php endif; ?>
-    </div>
-
-    <div class="hr"></div>
-
-    <h3>Tracking History</h3>
-    <div class="feed">
-      <?php if (count($logs) === 0): ?>
-        <div class="feed-item">
-          <p class="feed-msg">No tracking history yet.</p>
-          <p class="feed-time">—</p>
+    <?php if (count($logs) === 0): ?>
+      <div class="timeline-item">
+        <span class="time">—</span>
+        <span class="message">No tracking history yet.</span>
+      </div>
+    <?php else: ?>
+      <?php foreach (array_reverse($logs) as $l): ?>
+        <div class="timeline-item">
+          <span class="time"><?= h(date("m/d/y, g:i A", strtotime($l["created_at"]))) ?></span>
+          <span class="message"><?= h($l["message"]) ?></span>
         </div>
-      <?php else: ?>
-        <?php foreach ($logs as $l): ?>
-          <div class="feed-item">
-            <p class="feed-msg"><?= htmlspecialchars(strtoupper($l["message"])) ?></p>
-            <p class="feed-time"><?= htmlspecialchars(date("m/d/y, g:i A", strtotime($l["created_at"]))) ?></p>
-          </div>
-        <?php endforeach; ?>
-      <?php endif; ?>
-    </div>
-
-  </section>
+      <?php endforeach; ?>
+    <?php endif; ?>
+  </div>
 
 </main>
+
+<!-- NOTIFICATION MODAL -->
+<div class="modal-backdrop" id="notifBackdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="notifTitle">
+    <button class="close-x" id="notifClose" type="button">&times;</button>
+    <h3 id="notifTitle">NOTIFICATION</h3>
+    <div class="notif-list">
+
+    <?php if (empty($notifs)): ?>
+      <div class="notif-item">
+        <div class="notif-title">No notifications yet</div>
+        <div class="notif-time">—</div>
+      </div>
+    <?php else: ?>
+      <?php foreach ($notifs as $n): ?>
+        <div class="notif-item">
+          <div class="notif-title"><?= h($n["message"]) ?></div>
+          <div class="notif-time">
+            <?= $n["created_at"] ? date("m/d/y, g:i A", strtotime($n["created_at"])) : "" ?>
+          </div>
+        </div>
+      <?php endforeach; ?>
+    <?php endif; ?>
+    </div>
+  </div>
+</div>
+
+<script>
+  const notifBtn = document.getElementById("notifBtn");
+  const backdrop = document.getElementById("notifBackdrop");
+  const closeBtn = document.getElementById("notifClose");
+  const badge = document.getElementById("notifBadge");
+
+  async function markSeen(){
+    try{
+      await fetch("notif_seen.php", { method: "POST", headers: {"Content-Type": "application/x-www-form-urlencoded"}, body: "_csrf_token=<?= urlencode(csrf_token()) ?>" });
+      if (badge) badge.style.display = "none";
+    }catch(e){}
+  }
+
+  function openNotif(){
+    backdrop.style.display = "flex";
+    document.body.style.overflow = "hidden";
+    markSeen();
+  }
+
+  function closeNotif(){
+    backdrop.style.display = "none";
+    document.body.style.overflow = "";
+  }
+
+  notifBtn?.addEventListener("click", openNotif);
+  closeBtn?.addEventListener("click", closeNotif);
+
+  backdrop?.addEventListener("click", (e) => {
+    if (e.target === backdrop) closeNotif();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeNotif();
+  });
+
+  function cancelRequest(requestId, refNo) {
+    Swal.fire({
+      title: 'Cancel Request?',
+      text: `Are you sure you want to cancel request ${refNo}?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#EF4444',
+      confirmButtonText: 'Yes, cancel it',
+      cancelButtonText: 'No, keep it'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = 'request_cancel.php';
+
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = '_csrf_token';
+        csrfInput.value = '<?= csrf_token() ?>';
+        form.appendChild(csrfInput);
+
+        const idInput = document.createElement('input');
+        idInput.type = 'hidden';
+        idInput.name = 'request_id';
+        idInput.value = requestId;
+        form.appendChild(idInput);
+
+        document.body.appendChild(form);
+        form.submit();
+      }
+    });
+  }
+</script>
+
 </body>
 </html>
