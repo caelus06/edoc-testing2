@@ -3,6 +3,7 @@
     "description": "E-Doc Document Requesting System",
     "type": "project",
     "require": {
+        "ext-mysqli": "*",
         "phpoffice/phpword": "^1.0",
         "phpmailer/phpmailer": "^7.0"
     },
